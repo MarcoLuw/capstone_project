@@ -4,15 +4,15 @@ This guide provides essential commands for working with Docker Compose and manag
 
 ## Build and Run Images in Detach Mode
 
-To **build** and run Docker images in detached mode, use the following command:
-```bash
+To **build** and **run** Docker images in detached mode, use the following command:
+```shell
 docker-compose up -d --build
 ```
 
 ## Stop and Remove Running Containers
 
-To stop and remove the running Docker containers, use the following command:
-```bash
+To **stop** and **remove** the running Docker containers, use the following command:
+```shell
 docker-compose down
 ```
 
@@ -23,16 +23,16 @@ docker-compose down
 
 ## Activate Virtual Environment
 
-Before coding or integrating with any Python file, it's compulsory to activate the virtual environment to ensure dependencies are isolated. Use the following command to activate the virtual environment:
+Before coding or integrating with any Python file, **it's compulsory to activate** the virtual environment to ensure dependencies are isolated. Use the following command to activate the virtual environment:
 
-```bash
+```shell
 .venv\Scripts\activate
 ```
 
 ## Deactivate Virtual Environment
 
-To deactivate the virtual environment, simply run:
+To **deactivate** the virtual environment, simply run:
 
-```bash
+```shell
 deactivate
 ```
