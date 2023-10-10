@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # CAPSTONE PROJECT
 
 This guide provides essential commands for working with Docker Compose and managing a Python virtual environment.
@@ -37,7 +36,3 @@ To deactivate the virtual environment, simply run:
 ```bash
 deactivate
 ```
-=======
-# capstone_project
-Capstone Project at HCMUT with ReactJS, Django and Postgresql
->>>>>>> b6bb54a39525220f55521fd4e2f89bd463f01805
