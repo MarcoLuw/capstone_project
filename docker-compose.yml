@@ -17,6 +17,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3000:3000'
+    environment:
+      - WDS_SOCKET_HOST=127.0.0.1 
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true 
     volumes:
       - ./frontend:/app/frontend
     depends_on:
@@ -32,6 +36,7 @@ services:
       - POSTGRES_DB=postgres
     ports:
       - '8000:8000'
+    restart: on-failure
     volumes:
       - ./backend:/app/backend
     depends_on:
