@@ -22,6 +22,10 @@ To **stop** and **remove** the running Docker containers, use the following comm
 ```shell
 docker-compose down
 ```
+To **start** container again:
+```shell
+docker-compose up
+```
 
 ### Django and ReactJS Services
 
