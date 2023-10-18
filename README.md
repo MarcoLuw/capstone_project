@@ -82,4 +82,6 @@ Replace **your-container-name** with the name of your PostgreSQL container.
 psql -h your-container-ip -p your-port -d your-database -U your-username -W
 ```
 Replace **your-container-ip**, **your-port**, **your-database**, **your-username**, and **your-password** with your specific values.
+\
+\
 *Note: After the last command is executes, it will get your database password*
