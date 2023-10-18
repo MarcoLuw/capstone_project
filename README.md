@@ -2,6 +2,12 @@
 
 This guide provides essential commands for working with Docker Compose and managing a Python virtual environment.
 
+### Delete .gitkeep file
+Remove .gitkeep file to run the source code correctly
+```shell
+cd data\db
+find . -type f -name ".gitkeep" -delete;
+```
 
 ### Build and Run Images in Detach Mode
 
