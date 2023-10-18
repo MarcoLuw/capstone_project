@@ -1,4 +1,7 @@
-FROM node:18.18.0-alpine
+FROM node:18-alpine
+
+# Declaring env
+ENV NODE_ENV development
 
 WORKDIR /app/frontend/
 
