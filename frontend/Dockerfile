@@ -1,14 +1,22 @@
-FROM node:18-alpine
+# pull official base image
+FROM node:14-alpine
 
-# Declaring env
-ENV NODE_ENV development
+# set working directory
+WORKDIR /app
 
-WORKDIR /app/frontend/
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
-COPY package*.json /app/frontend/
+# install app dependencies
+COPY package.json ./
+RUN npm install --silent
+RUN npm install react-scripts@4.0.0 -g --silent
 
-RUN npm install
+# add app
+COPY . ./
 
-COPY . /app/frontend/
+# Expose port
+EXPOSE 3000
 
+# start app
 CMD ["npm", "start"]
