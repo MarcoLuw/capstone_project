@@ -46,7 +46,7 @@ const menuItems = {
                     id: 'Chatbot',
                     title: 'Chatbot',
                     type: 'item',
-                    url: '/sample-page',
+                    url: '/chat-bot',
                     classes: 'nav-item',
                     icon: 'feather icon-message-square'
                 }
@@ -144,10 +144,10 @@ const menuItems = {
                     
                         },
                         {
-                            id: 'sample-page',
-                            title: 'Sample Page',
+                            id: 'chat-bot',
+                            title: 'Chatbot',
                             type: 'item',
-                            url: '/sample-page',
+                            url: '/chat-bot',
                             classes: 'nav-item'
                            
                         },

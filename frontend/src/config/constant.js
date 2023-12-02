@@ -7,7 +7,7 @@ if (process.env.REACT_APP_BACKEND_SERVER) {
 
 export const BASENAME = ''; // don't add '/' at end off BASENAME
 export const BASE_URL = '/app/dashboard/default';
-export const BASE_TITLE = ' | React Datta Able ';
+export const BASE_TITLE = ' | E-Commerce ';
 export const API_SERVER = BACKEND_SERVER;
 
 export const CONFIG = {

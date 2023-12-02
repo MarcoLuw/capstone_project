@@ -123,8 +123,8 @@ const routes = [
 
             {
                 exact: true,
-                path: '/sample-page',
-                component: lazy(() => import('./views/extra/SamplePage'))
+                path: '/chat-bot',
+                component: lazy(() => import('./views/extra/Chatbot'))
             },
             {
                 path: '*',

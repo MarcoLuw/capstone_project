@@ -391,9 +391,9 @@ td {
 .filter-bar .navbar {
     @media (max-width: 690px) {
         padding: 0.5rem 1rem 1rem;
-        // #dropdown-basic{
-        //   padding-left: 10px;
-        // }
+        dropdown-basic{
+          padding-left: 10px;
+        }
         .f-view {
             padding-left: 25px;
             margin-top: 8px;

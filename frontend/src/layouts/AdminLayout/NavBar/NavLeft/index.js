@@ -17,6 +17,20 @@ const NavLeft = () => {
 
     return (
         <React.Fragment>
+
+            <ListGroup as="ul" bsPrefix=" " className="navbar-nav mr-auto">
+                {/* Các phần tử khác trong ListGroup */}
+
+                {/* Thêm đoạn văn bản ở đây */}
+                <ListGroup.Item as="li" bsPrefix=" " className="nav-item">
+                    <div className="f-w-400 d-flex align-items-center m-b-0" style={{ fontSize: '1.5rem' }}>
+                    <i className="feather icon-shopping-cart f-30 text-c-green" style={{ marginRight: '10px' }}/>  E-COMMERCE ANALYTICS SYSTEM 
+                    </div>
+                </ListGroup.Item>
+
+                {/* Tiếp tục với phần còn lại của component */}
+            </ListGroup>
+
             {/* <ListGroup as="ul" bsPrefix=" " className="navbar-nav mr-auto">
                 <ListGroup.Item as="li" bsPrefix=" " className={navItemClass.join(' ')}>
                     <Dropdown alignRight={dropdownRightAlign}>
