@@ -1,5 +1,5 @@
 """
-URL configuration for backend project.
+URL configuration for DataWareHouse_BE project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -16,9 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from . import views
+
+from backend import views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('test/', views.send_some_data),
+    
+    path('detail_customer/all', views.DetailCustomerApi),
+    path('detail_customer/agv', views.DetailCustomerAVGApi),
+
+    path('dim_customer/all', views.DimCustomerApi),
+    path('dim_product/all', views.DimProductApi),
+    path('dim_store/all', views.DimStoreApi),
+    path('fact_ecommerce_sales/all', views.FactEcommerceSalesApi), 
+
+
 ]
