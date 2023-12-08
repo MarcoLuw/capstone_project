@@ -64,7 +64,7 @@ const routes = [
         routes: [
             {
                 exact: true,
-                path: '/app/dashboard/default',
+                path: '/dashboard',
                 component: lazy(() => import('./views/dashboard/DashDefault'))
             },
 
@@ -101,18 +101,18 @@ const routes = [
 
             {
                 exact: true,
-                path: '/forms/form-basic',
+                path: '/create',
                 component: lazy(() => import('./views/forms/FormsElements'))
             },
             {
                 exact: true,
-                path: '/tables/bootstrap',
+                path: '/browse',
                 component: lazy(() => import('./views/tables/BootstrapTable'))
             },
 
             {
                 exact: true,
-                path: '/charts/nvd3',
+                path: '/forecast',
                 component: lazy(() => import('./views/charts/nvd3-chart'))
             },
             {

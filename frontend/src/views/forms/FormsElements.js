@@ -1,49 +1,196 @@
-import React, { useState } from 'react';
-import { Row, Col, Card, Form, Button, InputGroup, FormControl, DropdownButton, Dropdown } from 'react-bootstrap';
+import React, { useState ,useRef } from 'react';
+import { Row, Col, Card, Form, Button, Modal} from 'react-bootstrap';
+import ProductTableComponent from '../dashboard/DashDefault/chart/ProductDetail';
+// import {InputGroup, FormControl, DropdownButton, Dropdown} from 'react-bootstrap';
+
 
 const FormsElements = () => {
-    const [validated, setValidated] = useState(false);
-    const [validatedTooltip, setValidatedTooltip] = useState(false);
-    const [supportedCheckbox, setSupportedCheckbox] = useState(false);
-    const [supportedRadio, setSupportedRadio] = useState(false);
-    const [supportedSelect, setSupportedSelect] = useState(0);
-    const [supportedFile, setSupportedFile] = useState(0);
 
-    const handleSubmit = (event) => {
-        const form = event.currentTarget;
-        if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        setValidated(true);
+    // Tạo một ref cho thẻ input file
+    const fileInputRef = useRef(null);
+
+    // Hàm xử lý khi nhấp vào nút upload
+    const handleUploadClick = () => {
+        // Kích hoạt click trên thẻ input file
+        fileInputRef.current.click();
     };
 
-    const handleSubmitTooltip = (event) => {
-        const form = event.currentTarget;
-        if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        setValidatedTooltip(true);
+    // useState để quản lý việc hiển thị của Modal
+    const [showModal, setShowModal] = useState(false);
+
+    // Hàm để mở Modal
+    const handleConnectClick = () => {
+        setShowModal(true);
     };
 
-    const supportedSelectHandler = (event) => {
-        setSupportedSelect(parseInt(event.target.value));
+    // Hàm để đóng Modal
+    const handleClose = () => {
+        setShowModal(false);
     };
 
-    const supportedFileHandler = (event) => {
-        setSupportedFile(!!event.target.value);
-    };
 
     return (
         <React.Fragment>
-            <Row>
-                <Col sm={12}>
+        <Row>
+            <Col sm={12}>
+                    <Card>
+                        <Card.Header className="d-flex justify-content-center align-items-center">
+                            <Card.Title as="h3" className="text-center">Get data to start building a report</Card.Title>
+                        </Card.Header>
+
+                        <Card.Body>
+                            <Row>
+                                <Col md={6} className="d-flex justify-content-end align-items-center">
+                                    <Card className="text-center" style={{ width: '90%' }}>
+                                        <Card.Body>
+                                            <div className="col-auto">
+                                                <i className="feather icon-file-text f-30" style={{ fontSize: '100px'}} />
+                                            </div>
+                                            <Card.Title className="mt-3">From File</Card.Title>
+                                            <div className="w-75 mx-auto">  
+                                                <Form.Control as="select" className="mb-5">
+                                                    <option>Choose..</option>
+                                                    <option>Excel</option>
+                                                    <option>CSV</option>
+                                                </Form.Control>
+                                            </div>
+                                            <Card.Text>
+                                                <Button variant="outline-primary" onClick={handleUploadClick}>Upload File</Button>
+                                                <input type="file" ref={fileInputRef} style={{ display: 'none' }} />
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col md={6} className="d-flex justify-content-start align-items-center">
+                                    <Card className="text-center" style={{ width: '90%' }}> 
+                                        <Card.Body>
+                                        <div className="col-auto">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" 
+                                            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                                            className="feather feather-database">
+                                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                            </svg>
+                                        </div>
+
+                                            <Card.Title className="mt-3">From Database</Card.Title>
+                                            <div className="w-75 mx-auto">  
+                                            <Form.Control as="select" className="mb-5">
+                                                    <option>Choose..</option>
+                                                    <option>SQL Server</option>
+                                            </Form.Control>
+                                            </div>
+                                            <Card.Text>
+                                                 <Button variant="outline-primary" onClick={handleConnectClick}>Connect</Button>
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+
+                                <Modal show={showModal} onHide={handleClose}>
+                                    <Modal.Header closeButton>
+                                        <Modal.Title>SQL Server database</Modal.Title>
+                                    </Modal.Header>
+                                    <Modal.Body>
+                                        <Form>
+                                            <Form.Group>
+                                                <Form.Label>Server</Form.Label>
+                                                <Form.Control type="text" placeholder="Enter server name" />
+                                            </Form.Group>
+                                            <Form.Group>
+                                                <Form.Label>Database (optional)</Form.Label>
+                                                <Form.Control type="text" placeholder="Enter database name (optional)" />
+                                            </Form.Group>
+                                            <fieldset>
+                                                <Form.Group>
+                                                    <Form.Label>Data Connectivity mode</Form.Label>
+                                                    <Form.Check 
+                                                        type="radio"
+                                                        label="Import"
+                                                        name="dataConnectivityMode"
+                                                        id="importMode"
+                                                        defaultChecked
+                                                    />
+                                                    <Form.Check 
+                                                        type="radio"
+                                                        label="DirectQuery"
+                                                        name="dataConnectivityMode"
+                                                        id="directQueryMode"
+                                                    />
+                                                </Form.Group>
+                                            </fieldset>
+                                            <Button variant="secondary" onClick={handleClose}>
+                                                Close
+                                            </Button>
+                                            <Button variant="primary" onClick={handleClose}>
+                                                OK
+                                            </Button>
+                                        </Form>
+                                    </Modal.Body>
+                                </Modal>
+                            </Row>
+                            <Row>
+                                <Col className="text-center mt-3">
+                                    <a href="#">Don't understand how to connect your database? See the instruction.</a>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+
                     <Card>
                         <Card.Header>
-                            <Card.Title as="h5">Form controls</Card.Title>
+                            <Card.Title as="h5">Preview Data</Card.Title>
                         </Card.Header>
-                        <Card.Body>
+                        <Card.Body style={{ padding: 0, marginTop: '-2rem' }}>
+                            <ProductTableComponent height="1200px" />
+                        </Card.Body> 
+                        
+                    </Card>
+                </Col>
+                
+            </Row>
+        </React.Fragment>
+    );
+};
+
+export default FormsElements;
+
+//const [validated, setValidated] = useState(false);
+// const [validatedTooltip, setValidatedTooltip] = useState(false);
+// const [supportedCheckbox, setSupportedCheckbox] = useState(false);
+// const [supportedRadio, setSupportedRadio] = useState(false);
+// const [supportedSelect, setSupportedSelect] = useState(0);
+// const [supportedFile, setSupportedFile] = useState(0);
+
+ // const handleSubmit = (event) => {
+    //     const form = event.currentTarget;
+    //     if (form.checkValidity() === false) {
+    //         event.preventDefault();
+    //         event.stopPropagation();
+    //     }
+    //     setValidated(true);
+    // };
+
+    // const handleSubmitTooltip = (event) => {
+    //     const form = event.currentTarget;
+    //     if (form.checkValidity() === false) {
+    //         event.preventDefault();
+    //         event.stopPropagation();
+    //     }
+    //     setValidatedTooltip(true);
+    // };
+
+    // const supportedSelectHandler = (event) => {
+    //     setSupportedSelect(parseInt(event.target.value));
+    // };
+
+    // const supportedFileHandler = (event) => {
+    //     setSupportedFile(!!event.target.value);
+    // };
+
+
+    {/* <Card.Body>
                             <Row>
                                 <Col md={6}>
                                     <Form>
@@ -84,10 +231,9 @@ const FormsElements = () => {
                                     </Form.Group>
                                 </Col>
                             </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col sm={12}>
+                        </Card.Body> */}
+
+{/* <Col sm={12}>
                     <Card>
                         <Card.Header>
                             <Card.Title as="h5">Sizing</Card.Title>
@@ -1045,10 +1191,4 @@ const FormsElements = () => {
                             </Row>
                         </Card.Body>
                     </Card>
-                </Col>
-            </Row>
-        </React.Fragment>
-    );
-};
-
-export default FormsElements;
+                </Col> */}

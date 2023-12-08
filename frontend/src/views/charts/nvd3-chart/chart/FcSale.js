@@ -60,7 +60,9 @@ const ForecastSale = (props) => {
                 categoryBalloonDateFormat: 'YYYY'
             },
             legend: {
-                useGraphSettings: true
+                useGraphSettings: true,
+                align: 'center',
+                position: 'top'
             },
             export: {
                 enabled: true
