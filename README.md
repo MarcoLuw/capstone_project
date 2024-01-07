@@ -88,7 +88,8 @@ Replace **your-container-ip**, **your-port**, **your-database**, **your-username
 
 
 ## Naming Convention
-**How to naming the correct branch name**
+**How to specify the correct branch name ?**
+\
 \
 In this project, we will mostly utilize *KEBAB CASE* (Follow this link: https://www.freecodecamp.org/news/programming-naming-conventions-explained/#what-is-kebab-case)
 \
