@@ -68,7 +68,7 @@ pip install psycopg2-binary==2.9.9
 2. Install Node
 3. Install PostgreSQL - Follow the link: https://www.pgadmin.org/download/
 
-### Connect a PostgreSQL container with PostgresSQL Client tools
+## Connect a PostgreSQL container with PostgresSQL Client tools
 This step provides developers with the handy approach to manage data in database and allows efficiently tracking database tables or columns.
 
 1. Determine the Container IP Address
@@ -85,3 +85,20 @@ Replace **your-container-ip**, **your-port**, **your-database**, **your-username
 \
 \
 *Note: After the last command is executes, it will get your database password*
+
+
+## Naming Convention
+**How to naming the correct branch name**
+\
+In this project, we will mostly utilize *KEBAB CASE* (Follow this link: https://www.freecodecamp.org/news/programming-naming-conventions-explained/#what-is-kebab-case)
+\
+1. **Feature**
+- Rules: ``feature/{your-side}-{feature-name}-[testing?]``
+- Examples:
+    - **Authentication** feature for **Backend**: ``feature/backend-authentication``
+    - If there is a **test branch**: ``feature/backend-authentication-testing``
+2. Bugfix: 
+- Rules: ``bugfix/{your-side}-{feature-name}-[component?]``
+- Examples:
+    - ``bugfix/backend-authentication``
+    - ``bugfix/frontend-main-dashboard-login-button``

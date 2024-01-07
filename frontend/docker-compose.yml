@@ -1,17 +1,17 @@
 version: '3.7'
-
 services:
-
-  sample:
-    container_name: capstone-project
+  frontend:
+    container_name: react-frontend
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - '.:/app'
-      - '/app/node_modules'
     ports:
       - 3000:3000
     environment:
+      - WDS_SOCKET_HOST=127.0.0.1 
       - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - '.:/app/frontend'
+      - '/app/frontend/node_modules'
       
