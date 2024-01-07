@@ -1,7 +1,7 @@
 # CAPSTONE PROJECT
 
 This guide provides essential commands for working with Docker Compose and managing a Python virtual environment.
-## Initial Environmet
+## Initial Environment
 ### Delete .gitkeep file
 Remove .gitkeep file to run the source code correctly
 ```shell
