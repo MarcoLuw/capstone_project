@@ -96,13 +96,13 @@ In this project, we will mostly utilize *CAMEL CASE* for services and *KEBAB CAS
 (Follow this link: https://www.freecodecamp.org/news/programming-naming-conventions-explained/#what-is-kebab-case)
 \
 1. **Feature**
-- Rules: ``feature/{service-name}-{feature-name}--[testing?]``
+- Rules: ``feature/{service-name}-{feature-name}-[testing?]``
 - Examples:
     - **Authentication** feature for **Backend**: ``feature/backend-authentication``
     - Feature for **Datawarehouse**: ``feature/datastorage-storedata``
     - If there is a **test branch**: ``feature/backend-authentication-testing``
 2. **Bugfix**
-- Rules: ``bugfix/{your-side}-{feature-name}-[component?]``
+- Rules: ``bugfix/{service-name}-{feature-name}-[component?]``
 - Examples:
     - ``bugfix/backend-authentication``
     - ``bugfix/frontend-main-dashboard-login-button``
