@@ -1,7 +1,7 @@
 # CAPSTONE PROJECT
 
 This guide provides essential commands for working with Docker Compose and managing a Python virtual environment.
-
+## Initial Environment
 ### Delete .gitkeep file
 Remove .gitkeep file to run the source code correctly
 ```shell
@@ -88,17 +88,21 @@ Replace **your-container-ip**, **your-port**, **your-database**, **your-username
 
 
 ## Naming Convention
-**How to naming the correct branch name**
+**How to specify the correct branch name ?**
 \
-In this project, we will mostly utilize *KEBAB CASE* (Follow this link: https://www.freecodecamp.org/news/programming-naming-conventions-explained/#what-is-kebab-case)
+\
+In this project, we will mostly utilize *CAMEL CASE* for services and *KEBAB CASE* for features.
+\
+(Follow this link: https://www.freecodecamp.org/news/programming-naming-conventions-explained/#what-is-kebab-case)
 \
 1. **Feature**
-- Rules: ``feature/{your-side}-{feature-name}-[testing?]``
+- Rules: ``feature/{service-name}-{feature-name}-[testing?]``
 - Examples:
     - **Authentication** feature for **Backend**: ``feature/backend-authentication``
+    - Feature for **Datawarehouse**: ``feature/datastorage-storedata``
     - If there is a **test branch**: ``feature/backend-authentication-testing``
-2. Bugfix: 
-- Rules: ``bugfix/{your-side}-{feature-name}-[component?]``
+2. **Bugfix**
+- Rules: ``bugfix/{service-name}-{feature-name}-[component?]``
 - Examples:
     - ``bugfix/backend-authentication``
     - ``bugfix/frontend-main-dashboard-login-button``
