@@ -2,11 +2,29 @@
 
 This guide provides essential commands for working with Docker Compose and managing a Python virtual environment.
 ## Initial Environment
-### Delete .gitkeep file
-Remove .gitkeep file to run the source code correctly
+At the root directory (capstone_project/), you should **create a virtual environment** in order to install all required dependencies of Python.
 ```shell
-cd data\db
-find . -type f -name ".gitkeep" -delete;
+python -m venv .venv
+```
+
+### Activate Virtual Environment
+
+Before coding or integrating with any Python file, **it's compulsory to activate** the virtual environment to ensure dependencies are isolated. Use the following command to activate the virtual environment:
+
+```shell
+.venv\Scripts\activate
+```
+
+**Install all dependencies**
+```shell
+pip install -r requirements.txt
+```
+
+### Deactivate Virtual Environment
+To **deactivate** the virtual environment, simply run:
+
+```shell
+deactivate
 ```
 
 ### Build and Run Images in Detach Mode
@@ -32,42 +50,6 @@ docker-compose up
 - Django service is accessible on **port 8000**.
 - ReactJS service is accessible on **port 3000**.
 
-### Activate Virtual Environment
-
-Before coding or integrating with any Python file, **it's compulsory to activate** the virtual environment to ensure dependencies are isolated. Use the following command to activate the virtual environment:
-
-```shell
-.venv\Scripts\activate
-```
-
-### Deactivate Virtual Environment
-
-To **deactivate** the virtual environment, simply run:
-
-```shell
-deactivate
-```
-
-## Install required packages and dependencies on local machine
-If you want to working the directories, it demands some libraries and technologies installed for interacting with the source code.
-
-### Install core libraries
-1. Install python packages and libraries
-```shell
-pip install django==4.2.5
-```
-```shell
-pip install djangorestframework==3.14.0
-```
-```shell
-pip install django-cors-headers==4.2.0
-```
-```shell
-pip install psycopg2-binary==2.9.9
-```
-2. Install Node
-3. Install PostgreSQL - Follow the link: https://www.pgadmin.org/download/
-
 ## Connect a PostgreSQL container with PostgresSQL Client tools
 This step provides developers with the handy approach to manage data in database and allows efficiently tracking database tables or columns.
 
@@ -77,15 +59,26 @@ Find the IP address of PostgreSQL container.
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' your-postgres-container-name
 ```
 Replace **your-container-name** with the name of your PostgreSQL container.
-2. Using Command-Line Tools **(psql)**
+2. Access into the POSTGRES CONTAINER
 ```shell
-psql -h your-container-ip -p your-port -d your-database -U your-username -W
+docker exec -it {postgres-container-name} bash
 ```
-Replace **your-container-ip**, **your-port**, **your-database**, **your-username**, and **your-password** with your specific values.
+3. Using Command-Line Tools **(psql)**
+```shell
+psql -h your-host -d your-database -U your-username -W
+```
+Replace **your-container-ip**,  **your-database**, **your-username**, and **your-password** with your specific values.
 \
 \
 *Note: After the last command is executes, it will get your database password*
-
+4. If you're still outside the database, these command maybe handful
+- **List all the database:** ``\l``
+- **Connect to the database:** ``\c {your-database-name}``
+- **List all the table of the database:** ``\dt``
+- **View the specified table:** ``SELECT * FROM "User";``
+\
+\
+*Note: Postgres is "Case-Sensitive", so please be careful when using DML or DDL commands*
 
 ## Naming Convention
 **How to specify the correct branch name ?**
