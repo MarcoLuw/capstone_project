@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import pymysql
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ayl)youa83erw0b5xz93*f!kppn8hb++8v2tht=z6r9lx2skf6'
+
+DEFAULT_SECRET_KEY = 'django-insecure-ayl)youa83erw0b5xz93*f!kppn8hb++8v2tht=z6r9lx2skf6'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', DEFAULT_SECRET_KEY)
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'backend'
+    # 'backend',
+    'authentication',
 ]
 
 MIDDLEWARE = [
@@ -53,8 +57,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-CORS_ALLOW_ALL_ORIGINS=True
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -89,18 +91,18 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-pymysql.install_as_MySQLdb()
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dw',
-        'USER': 'admin',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
-        'PASSWORD': 'admin',
-        'PORT': '3306',    
+        'PORT': '5432',
     }
 }
 
+AUTH_USER_MODEL = 'authentication.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -142,3 +144,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Using this we can send requests from any origin
+# Will be updated later for specific origins
+CORS_ALLOW_ALL_ORIGINS=True
+# Using this we can send cookies with requests, otherwise frontend will not be able to access the cookies
+CORS_ALLOW_CREDENTIALS=True 
