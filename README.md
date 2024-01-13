@@ -58,7 +58,7 @@ Find the IP address of PostgreSQL container.
 ```shell
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' your-postgres-container-name
 ```
-Replace **your-container-name** with the name of your PostgreSQL container.
+Replace **your-container-name** with the name of your PostgreSQL container.\
 2. Access into the POSTGRES CONTAINER
 ```shell
 docker exec -it {postgres-container-name} bash
