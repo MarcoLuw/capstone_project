@@ -68,10 +68,11 @@ docker exec -it {postgres-container-name} bash
 ```shell
 psql -h your-host -d your-database -U your-username -W
 ```
-Replace **your-container-ip**,  **your-database**, **your-username**, and **your-password** with your specific values.
+Replace **your-host**,  **your-database**, **your-username**, and **your-password** with your specific values.
 \
 \
 *Note: After the last command is executes, it will get your database password*
+
 4. If you're still outside the database, these command maybe handful
 - **List all the database:** ``\l``
 - **Connect to the database:** ``\c {your-database-name}``
