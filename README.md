@@ -66,9 +66,9 @@ docker exec -it {postgres-container-name} bash
 ```
 3. Using Command-Line Tools **(psql)**
 ```shell
-psql -h your-host -d your-database -U your-username -W
+psql-U your-username -d your-database -W
 ```
-Replace **your-host**,  **your-database**, **your-username**, and **your-password** with your specific values.
+Replace **your-database** and **your-username** with your specific values.
 \
 \
 *Note: After the last command is executes, it will get your database password*
@@ -81,6 +81,27 @@ Replace **your-host**,  **your-database**, **your-username**, and **your-passwor
 \
 \
 *Note: Postgres is "Case-Sensitive", so please be careful when using DML or DDL commands*
+
+## Manage Data of PostgresSQL
+There is a fact that Postgres DB of this project is hosted by docker, so **data management** turns out to be more important for collaborators when working with it. At this time, there are some **must-do** steps to follow to guarantee the synchronization of Postgres data.
+
+1. The sync data will be stored in ``\backend\db``, including ``data.sql`` which holds the latest data while ``backups\`` directory contains the log of data scripts. Files in ``backups\`` are named by the following format: ``YYYYMMDD-HHMMSS.sql``.
+
+2. ``db_handle_data.bat`` is the script inside the ``helper\`` directory, which takes charge of handling the data synchronization.\
+There are 2 options: **save** or **restore**
+- After all the working with the data, you must **save** your lastest data by using the command:
+```shell
+.\db_handle_data.bat save
+```
+to store the lastest data into ``data.sql`` which will be pushed to shared repo.
+- This command also creates a new log of saving data into the ``backups\`` directory, the technique is to guarantee all your changes will be recorded, which might be useful whenenver you want to recover the older data version. Please Note that the ``backups\`` directory should not be pushed onto the shared repo due to its local characteristic.
+- Otherwise, to **restore** the lastest data to your postgres container, using this command:
+```shell
+.\db_handle_data.bat restore [datafile.sql]
+```
+By default, if you don't input specified datafile into the command, this will apply the ``data.sql`` to your current postgres container. For example:
+- ``.\db_handle_data.bat restore `` --> apply ``data.sql``
+- ``.\db_handle_data.bat restore ..\backend\db\backups\20240115_010257.sql`` --> apply ``20240115_010257.sql``
 
 ## Naming Convention
 **How to specify the correct branch name ?**
