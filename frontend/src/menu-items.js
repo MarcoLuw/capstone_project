@@ -81,10 +81,10 @@ const menuItems = {
             icon: 'icon-navigation',
             children: [
                 {
-                    id: 'signin-2',
-                    title: 'Sign out',
+                    id: 'login',
+                    title: 'Logout',
                     type: 'item',
-                    url: '/auth/signin-2',
+                    url: '/auth/login',
                     target: true,
                     breadcrumbs: false,
                     icon: 'feather icon-log-out'
@@ -169,18 +169,18 @@ const menuItems = {
                            
         //                 },
         //                 {
-        //                     id: 'signup-2',
+        //                     id: 'register',
         //                     title: 'Sign UP (template)',
         //                     type: 'item',
-        //                     url: '/auth/signup-2',
+        //                     url: '/auth/register',
         //                     target: true,
         //                     breadcrumbs: false
         //                 },
         //                 {
-        //                     id: 'signin-2',
+        //                     id: 'login',
         //                     title: 'Sign IN (template)',
         //                     type: 'item',
-        //                     url: '/auth/signin-2',
+        //                     url: '/auth/login',
         //                     target: true,
         //                     breadcrumbs: false
         //                 }

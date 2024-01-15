@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { Row, Col, Button, Alert } from 'react-bootstrap';
 
 import * as Yup from 'yup';
@@ -12,6 +13,7 @@ import { ACCOUNT_INITIALIZE } from './../../../store/actions';
 const RestLogin = ({ className, ...rest }) => {
     const dispatcher = useDispatch();
     const scriptedRef = useScriptRef();
+    let history = useHistory();
 
     return (
         <React.Fragment>
@@ -28,33 +30,39 @@ const RestLogin = ({ className, ...rest }) => {
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     try {
                         axios
-                            .post(API_SERVER + 'users/login', {
-                                password: values.password,
-                                email: values.email
-                            })
-                            .then(function (response) {
-                                if (response.data.success) {
-                                    console.log(response.data);
-                                    dispatcher({
-                                        type: ACCOUNT_INITIALIZE,
-                                        payload: { isLoggedIn: true, user: response.data.user, token: response.data.token }
-                                    });
-                                    if (scriptedRef.current) {
-                                        setStatus({ success: true });
-                                        setSubmitting(false);
-                                    }
-                                } else {
-                                    setStatus({ success: false });
-                                    setErrors({ submit: response.data.msg });
+                        .post(API_SERVER + 'login', {
+                            email: values.email,
+                            password: values.password,
+                        })
+                        .then(function (response) {
+                            if (response.data.jwt) { // Kiểm tra xem phản hồi có chứa JWT không
+                                // Lưu trữ JWT và cập nhật trạng thái người dùng
+                                dispatcher({
+                                    type: ACCOUNT_INITIALIZE,
+                                    payload: { isLoggedIn: true, token: response.data.jwt }
+                                });
+                                history.push('/dashboard');
+                                if (scriptedRef.current) {
+                                    setStatus({ success: true });
                                     setSubmitting(false);
                                 }
-                            })
-                            .catch(function (error) {
-                                console.log(error);
+                            } else {
+                                // Xử lý trường hợp không nhận được JWT
                                 setStatus({ success: false });
-                                setErrors({ submit: error.response.data.msg });
+                                setErrors({ submit: 'Login failed. Please try again.' });
                                 setSubmitting(false);
-                            });
+                            }
+                        })
+                        .catch(function (error) {
+                            const errorResponse = error.response.data;
+                            let errorMessage = 'Login failed. Please try again.';
+                            if (errorResponse.detail) {
+                                errorMessage = errorResponse.detail;
+                            }
+                            setStatus({ success: false });
+                            setErrors({ submit: errorMessage });
+                            setSubmitting(false);
+                        });
                     } catch (err) {
                         console.error(err);
                         if (scriptedRef.current) {
@@ -119,7 +127,7 @@ const RestLogin = ({ className, ...rest }) => {
                                     type="submit"
                                     variant="primary"
                                 >
-                                    Sign IN
+                                    Login
                                 </Button>
                             </Col>
                         </Row>
