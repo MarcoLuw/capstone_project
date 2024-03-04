@@ -32,7 +32,11 @@ const Signin1 = () => {
                             </p>
                             <p className="mb-0 text-muted">
                                 Don’t have an account?
+<<<<<<< HEAD
+                                <NavLink to="/auth/signup-2" className="f-w-400">
+=======
                                 <NavLink to="/auth/register" className="f-w-400">
+>>>>>>> main
                                     Signup
                                 </NavLink>
                             </p>

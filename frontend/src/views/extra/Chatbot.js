@@ -1,11 +1,24 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
+import { Row, Col, Form, Button } from 'react-bootstrap';
+=======
 import { Row, Col, Form, Button, InputGroup} from 'react-bootstrap';
+>>>>>>> main
 import Card from '../../components/Card/MainCard';
 
 const ChatbotPage = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
 
+<<<<<<< HEAD
+    const handleSendMessage = () => {
+        if (input.trim() !== '') {
+            setMessages([...messages, { text: input, sender: 'user' }]);
+            // Gửi tin nhắn đến chatbot ở đây
+            // Ví dụ: chatbotResponse(input).then(response => {
+            //     setMessages([...messages, { text: response, sender: 'bot' }]);
+            // });
+=======
     const formatMessage = (message) => {
         return message.split('\n').map((line, index) => <p key={index}>{line}</p>);
       };
@@ -36,6 +49,7 @@ const ChatbotPage = () => {
 
             
             setMessages(messages => [...messages, newUserMessage, botResponse]);
+>>>>>>> main
             setInput('');
         }
     };
@@ -101,6 +115,18 @@ const ChatbotPage = () => {
 
 
 
+<<<<<<< HEAD
+                        <Form>
+                            <Form.Group>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Nhập tin nhắn..."
+                                    value={input}
+                                    onChange={handleInputChange}
+                                />
+                            </Form.Group>
+                        </Form>
+=======
                         <Form onSubmit={(e) => {
                                 e.preventDefault(); // This will prevent the default form submission
                                 handleSendMessage();
@@ -127,6 +153,7 @@ const ChatbotPage = () => {
 
 
       
+>>>>>>> main
                     </Card>
                 </Col>
             </Row>

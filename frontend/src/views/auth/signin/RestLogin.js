@@ -1,6 +1,9 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+<<<<<<< HEAD
+=======
 import { useHistory } from 'react-router-dom';
+>>>>>>> main
 import { Row, Col, Button, Alert } from 'react-bootstrap';
 
 import * as Yup from 'yup';
@@ -13,7 +16,10 @@ import { ACCOUNT_INITIALIZE } from './../../../store/actions';
 const RestLogin = ({ className, ...rest }) => {
     const dispatcher = useDispatch();
     const scriptedRef = useScriptRef();
+<<<<<<< HEAD
+=======
     let history = useHistory();
+>>>>>>> main
 
     return (
         <React.Fragment>
@@ -30,6 +36,35 @@ const RestLogin = ({ className, ...rest }) => {
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     try {
                         axios
+<<<<<<< HEAD
+                            .post(API_SERVER + 'users/login', {
+                                password: values.password,
+                                email: values.email
+                            })
+                            .then(function (response) {
+                                if (response.data.success) {
+                                    console.log(response.data);
+                                    dispatcher({
+                                        type: ACCOUNT_INITIALIZE,
+                                        payload: { isLoggedIn: true, user: response.data.user, token: response.data.token }
+                                    });
+                                    if (scriptedRef.current) {
+                                        setStatus({ success: true });
+                                        setSubmitting(false);
+                                    }
+                                } else {
+                                    setStatus({ success: false });
+                                    setErrors({ submit: response.data.msg });
+                                    setSubmitting(false);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.log(error);
+                                setStatus({ success: false });
+                                setErrors({ submit: error.response.data.msg });
+                                setSubmitting(false);
+                            });
+=======
                         .post(API_SERVER + 'login', {
                             email: values.email,
                             password: values.password,
@@ -63,6 +98,7 @@ const RestLogin = ({ className, ...rest }) => {
                             setErrors({ submit: errorMessage });
                             setSubmitting(false);
                         });
+>>>>>>> main
                     } catch (err) {
                         console.error(err);
                         if (scriptedRef.current) {
@@ -127,7 +163,11 @@ const RestLogin = ({ className, ...rest }) => {
                                     type="submit"
                                     variant="primary"
                                 >
+<<<<<<< HEAD
+                                    Sign IN
+=======
                                     Login
+>>>>>>> main
                                 </Button>
                             </Col>
                         </Row>
