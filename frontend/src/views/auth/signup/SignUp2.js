@@ -36,13 +36,21 @@ const SignUp1 = () => {
                                     <div className="custom-control custom-checkbox  text-left mb-4 mt-2">
                                         <input type="checkbox" className="custom-control-input" id="customCheck1" defaultChecked={false} />
                                         <label className="custom-control-label" htmlFor="customCheck1">
+<<<<<<< HEAD
+                                            Send me the <Link to="#"> Newsletter</Link> weekly.
+=======
                                             I agree to the <Link to="#"> Terms and Conditions</Link>
+>>>>>>> main
                                         </label>
                                     </div>
                                     <button className="btn btn-primary mb-4">Sign up</button>
                                     <p className="mb-2">
                                         Already have an account?{' '}
+<<<<<<< HEAD
+                                        <NavLink to="/auth/signin-2" className="f-w-400">
+=======
                                         <NavLink to="/auth/login" className="f-w-400">
+>>>>>>> main
                                             Login
                                         </NavLink>
                                     </p>

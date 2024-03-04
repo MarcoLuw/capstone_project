@@ -21,7 +21,11 @@ const SignUp1 = () => {
                         <Row className="align-items-center">
                             <Col>
                                 <Card.Body className="text-center">
+<<<<<<< HEAD
+                                    <h4 className="mb-4">React Datta Able</h4>
+=======
                                     <h4 className="mb-4">REGISTER</h4>
+>>>>>>> main
 
                                     <div className="mb-4">
                                         <i className="feather icon-user-plus auth-icon" />
@@ -41,8 +45,18 @@ const SignUp1 = () => {
                                     <p className="mb-0 text-muted">
                                         &copy;{' '}
                                         <a target="_blank" href="https://codedthemes.com/" rel="noreferrer">
+<<<<<<< HEAD
+                                            CodedThemes
+                                        </a>
+                                        -{' '}
+                                        <a target="_blank" href="https://appseed.us" rel="noreferrer">
+                                            AppSeed
+                                        </a>
+                                        .
+=======
                                             Capstone Project
                                         </a>
+>>>>>>> main
                                     </p>
                                 </Card.Body>
                             </Col>
