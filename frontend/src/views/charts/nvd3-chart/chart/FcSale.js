@@ -10,6 +10,7 @@ const ForecastSale = (props) => {
             type: 'serial',
             theme: 'light',
             dataProvider: [
+<<<<<<< HEAD
                 { Year: '2017', ActualSales: 63},
                 { Year: '2018', ActualSales: 86},
                 { Year: '2019', ActualSales: 64 },
@@ -17,6 +18,17 @@ const ForecastSale = (props) => {
                 { Year: '2021', ActualSales: 54, PredictSales: 54 },
                 { Year: '2022', PredictSales: 67 },
                 { Year: '2023', PredictSales: 87 }
+=======
+                { Year: '01/11', ActualSales: 31},
+                { Year: '08/11', ActualSales: 39},
+                { Year: '15/11', ActualSales: 34 },
+                { Year: '22/11', ActualSales: 42 },
+                { Year: '29/11', ActualSales: 36},
+                { Year: '06/12', ActualSales: 54},
+                { Year: '13/12', ActualSales: 27},
+                { Year: '20/12', ActualSales: 32, PredictSales: 32},
+                { Year: '27/12', PredictSales: 46}
+>>>>>>> main
             ],
             categoryField: 'Year',
             categoryAxis: {

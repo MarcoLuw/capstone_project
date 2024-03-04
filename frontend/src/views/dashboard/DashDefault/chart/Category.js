@@ -4,11 +4,16 @@ import 'amcharts3/amcharts/pie';
 import 'amcharts3/amcharts/themes/light';
 import AmCharts from '@amcharts/amcharts3-react';
 
+<<<<<<< HEAD
 const Category = (props) => {
+=======
+const Category = ({ data, height }) => {
+>>>>>>> main
     useEffect(() => {
         AmCharts.makeChart('pie-chart', {
             type: 'pie',
             theme: 'light',
+<<<<<<< HEAD
             radius: '40%',
             dataProvider: [
                 { Category: 'Đồ gia dụng', Sales: 100 },
@@ -16,6 +21,10 @@ const Category = (props) => {
                 { Category: 'Giải khát', Sales: 142 },
                 { Category: 'Vệ sinh', Sales: 194 }
             ],
+=======
+            radius: '50%',
+            dataProvider: data,
+>>>>>>> main
             valueField: 'Sales',
             titleField: 'Category',
             startDuration: 0.5,
@@ -25,8 +34,12 @@ const Category = (props) => {
             legend: {
                 position: 'bottom',
                 align: "center", // Căn giữa chú thích
+<<<<<<< HEAD
                 marginBottom: 20,
                 autoMargins: false,
+=======
+                autoMargins: true,
+>>>>>>> main
                 valueText: "" // Không hiển thị giá trị trong chú thích
             },
             export: {
@@ -37,9 +50,15 @@ const Category = (props) => {
                 enabled: true
             }
         });
+<<<<<<< HEAD
     }, []);
 
     return <div id="pie-chart" style={{ width: '100%', height: props.height }} />;
+=======
+    }, [data]);
+
+    return <div id="pie-chart" className="pie-chart" style={{ width: '100%', height: height }} />;
+>>>>>>> main
 };
 
 export default Category;

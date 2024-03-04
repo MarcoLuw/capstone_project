@@ -27,6 +27,7 @@ const RestRegister = ({ className, ...rest }) => {
                     password: Yup.string().max(255).required('Password is required')
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+<<<<<<< HEAD
                     try {
                         axios
                             .post(API_SERVER + 'users/register', {
@@ -54,6 +55,60 @@ const RestRegister = ({ className, ...rest }) => {
                             setStatus({ success: false });
                             setErrors({ submit: err.message });
                             setSubmitting(false);
+=======
+
+                            axios
+            .post(API_SERVER + 'register', {
+                username: values.username,
+                email: values.email,
+                password: values.password,
+            })
+            .then(function (response) {
+                if (response.data.id) { // Kiểm tra xem phản hồi có chứa 'id' không
+                    history.push('/auth/login');
+                }
+            })
+            .catch(function (error) {
+                const errorResponse = error.response.data;
+                let errorMessage = 'Registration failed. Please try again.';
+                // Kiểm tra xem phản hồi có chứa thông báo lỗi về email không
+                if (errorResponse.email && errorResponse.email.length > 0) {
+                    errorMessage = errorResponse.email[0];
+                }
+                setStatus({ success: false });
+                setErrors({ submit: errorMessage });
+                setSubmitting(false);
+            });
+                    try {
+                        axios
+                        .post(API_SERVER + 'register', {
+                            username: values.username,
+                            email: values.email,
+                            password: values.password,
+                        })
+                        .then(function (response) {
+                            if (response.data.id) { // Kiểm tra xem phản hồi có chứa 'id' không
+                                history.push('/auth/login');
+                            }
+                        })
+                        .catch(function (error) {
+                            const errorResponse = error.response.data;
+                            let errorMessage = 'Registration failed. Please try again.';
+                            // Kiểm tra xem phản hồi có chứa thông báo lỗi về email không
+                            if (errorResponse.email && errorResponse.email.length > 0) {
+                                errorMessage = errorResponse.email[0];
+                            }
+                            setStatus({ success: false });
+                            setErrors({ submit: errorMessage });
+                            setSubmitting(false);
+                        });
+                } catch (err) {
+                    console.error(err);
+                    if (scriptedRef.current) {
+                        setStatus({ success: false });
+                        setErrors({ submit: err.message });
+                        setSubmitting(false);
+>>>>>>> main
                         }
                     }
                 }}

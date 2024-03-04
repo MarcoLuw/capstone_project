@@ -49,13 +49,13 @@ const routes = [
     },
     {
         exact: true,
-        path: '/auth/signin-2',
+        path: '/auth/login',
         component: lazy(() => import('./views/auth/signin/SignIn2'))
     },
     {
         exact: true,
-        path: '/auth/signup-2',
-        component: lazy(() => import('./views/auth/signup/SignUp2'))
+        path: '/auth/register',
+        component: lazy(() => import('./views/auth/signup/SignUp1'))
     },
     {
         path: '*',
