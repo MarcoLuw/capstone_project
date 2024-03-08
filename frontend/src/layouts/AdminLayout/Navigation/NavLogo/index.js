@@ -17,11 +17,7 @@ const NavLogo = () => {
     return (
         <React.Fragment>
             <div className="navbar-brand header-logo">
-<<<<<<< HEAD
-                <Link to="#" className="b-brand">
-=======
                 <Link to="/dashboard" className="b-brand">
->>>>>>> main
                     <div className="b-bg">
                         <i className="feather icon-airplay" />
                     </div>
