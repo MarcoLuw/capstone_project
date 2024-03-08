@@ -27,35 +27,6 @@ const RestRegister = ({ className, ...rest }) => {
                     password: Yup.string().max(255).required('Password is required')
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-<<<<<<< HEAD
-                    try {
-                        axios
-                            .post(API_SERVER + 'users/register', {
-                                username: values.username,
-                                password: values.password,
-                                email: values.email
-                            })
-                            .then(function (response) {
-                                if (response.data.success) {
-                                    history.push('/auth/signin');
-                                } else {
-                                    setStatus({ success: false });
-                                    setErrors({ submit: response.data.msg });
-                                    setSubmitting(false);
-                                }
-                            })
-                            .catch(function (error) {
-                                setStatus({ success: false });
-                                setErrors({ submit: error.response.data.msg });
-                                setSubmitting(false);
-                            });
-                    } catch (err) {
-                        console.error(err);
-                        if (scriptedRef.current) {
-                            setStatus({ success: false });
-                            setErrors({ submit: err.message });
-                            setSubmitting(false);
-=======
 
                             axios
             .post(API_SERVER + 'register', {
@@ -108,7 +79,6 @@ const RestRegister = ({ className, ...rest }) => {
                         setStatus({ success: false });
                         setErrors({ submit: err.message });
                         setSubmitting(false);
->>>>>>> main
                         }
                     }
                 }}

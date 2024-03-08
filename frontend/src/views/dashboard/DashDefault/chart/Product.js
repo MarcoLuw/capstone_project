@@ -1,31 +1,11 @@
 import React, { useEffect } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
-<<<<<<< HEAD
-const Product = (props) => {
-    // Example data structure, replace with actual product sales data
-    const data = [
-        { Product: 'Product A', TotalSales: 64 },
-        { Product: 'Product B', TotalSales: 75 },
-        { Product: 'Product C', TotalSales: 54 },
-        { Product: 'Product D', TotalSales: 64 },
-        { Product: 'Product E', TotalSales: 75 },
-        { Product: 'Product F', TotalSales: 54 },
-        { Product: 'Product G', TotalSales: 62 },
-        { Product: 'Product H', TotalSales: 98 },
-        { Product: 'Product I', TotalSales: 87 },
-        { Product: 'Product J', TotalSales: 123 }
-    ];
-
-    useEffect(() => {
-        AmCharts.makeChart('bar-chart', {
-=======
 const Product = ({ data, height }) => {
     // Example data structure, replace with actual product sales data
 
     useEffect(() => {
         AmCharts.makeChart('bar-chart2', {
->>>>>>> main
             type: 'serial',
             theme: 'light',
             rotate: true, // Rotate the chart to make bars horizontal
@@ -36,11 +16,7 @@ const Product = ({ data, height }) => {
                 lineAlpha: 0,
                 autoGridCount: false,
                 labelFunction: function (value) {
-<<<<<<< HEAD
-                    return +Math.round(value) + 'M';
-=======
                     return +Math.round(value);
->>>>>>> main
                 },
                 title: "Total Sales"
             }],
@@ -51,17 +27,10 @@ const Product = ({ data, height }) => {
                 fillColors: '#a389d4',
                 fillAlphas: 1,
                 type: 'column',
-<<<<<<< HEAD
-                title: 'Total Sales',
-                valueField: 'TotalSales',
-                legendValueText: '[[value]]M',
-                balloonText: "[[category]]: <b>[[value]]M</b>"
-=======
                 title: 'Total Sales:',
                 valueField: 'TotalSales',
                 legendValueText: '[[value]]',
                 balloonText: "[[category]]: <b>[[value]]</b>"
->>>>>>> main
             }],
             chartCursor: {
                 pan: true,
@@ -89,15 +58,9 @@ const Product = ({ data, height }) => {
             },
             dataProvider: data
         });
-<<<<<<< HEAD
-    }, []);
-
-    return <div id="bar-chart" style={{ width: '100%', height: props.height }} />;
-=======
     }, [data]);
 
     return <div id="bar-chart2" className="bar-chart2" style={{ width: '100%', height: height }} />;
->>>>>>> main
 };
 
 export default Product;

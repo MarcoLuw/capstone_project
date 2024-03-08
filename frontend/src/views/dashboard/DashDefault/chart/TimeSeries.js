@@ -4,15 +4,9 @@ import 'amcharts3/amcharts/serial';
 import 'amcharts3/amcharts/themes/light';
 import AmCharts from '@amcharts/amcharts3-react';
 
-<<<<<<< HEAD
-const TimeSeries = (props) => {
-    useEffect(() => {
-        AmCharts.makeChart('bar-chart2', {
-=======
 const TimeSeries = ({ data, height }) => {
     useEffect(() => {
         AmCharts.makeChart('bar-chart', {
->>>>>>> main
             type: 'serial',
             theme: 'light',
             marginTop: 10,
@@ -26,11 +20,7 @@ const TimeSeries = ({ data, height }) => {
                     gridAlpha: 0,
                     autoGridCount: false,
                     labelFunction: function (value) {
-<<<<<<< HEAD
-                        return +Math.round(value);
-=======
                         return +Math.round(value) + '0';
->>>>>>> main
                     },
                     title: "Orders"
                 },
@@ -41,11 +31,7 @@ const TimeSeries = ({ data, height }) => {
                     lineAlpha: 0,
                     autoGridCount: false,
                     labelFunction: function (value) {
-<<<<<<< HEAD
-                        return +Math.round(value) + 'M';
-=======
                         return +Math.round(value);
->>>>>>> main
                     },
                     title: "Total Sales"
                 }
@@ -76,11 +62,7 @@ const TimeSeries = ({ data, height }) => {
                     type: 'line',
                     title: 'Total Sales (VND)',
                     valueField: 'TotalSales',
-<<<<<<< HEAD
-                    legendValueText: '[[value]]M',
-=======
                     legendValueText: '[[value]]',
->>>>>>> main
                     balloonText: "[[title]]<br /><b style='font-size: 130%'>[[value]]M</b>"
                 }
             ],
@@ -91,11 +73,7 @@ const TimeSeries = ({ data, height }) => {
                 cursorAlpha: 0,
                 valueLineAlpha: 0.2
             },
-<<<<<<< HEAD
-            categoryField: 'Year',
-=======
             categoryField: 'Month',
->>>>>>> main
             categoryAxis: {
                 dashLength: 1,
                 gridAlpha: 0,
@@ -111,41 +89,11 @@ const TimeSeries = ({ data, height }) => {
                 borderThickness: 1,
                 shadowAlpha: 0
             },
-<<<<<<< HEAD
-            dataProvider: [
-                {
-                    Year: '2019',
-                    Orders: 100,
-                    TotalSales: 64
-                },
-                {
-                    Year: '2020',
-                    Orders: 124,
-                    TotalSales: 75
-                },
-                {
-                    Year: '2021',
-                    Orders: 142,
-                    TotalSales: 54
-                },
-                {
-                    Year: '2022',
-                    Orders: 194,
-                    TotalSales: 96
-                }
-                // Các dữ liệu cho các năm tiếp theo được điều chỉnh tương tự
-            ]
-        });
-    });
-
-    return <div id="bar-chart2" className="bar-chart2" style={{ width: '100%', height: props.height }} />;
-=======
             dataProvider: data
         });
     }, [data]);
 
     return <div id="bar-chart" className="bar-chart" style={{ width: '100%', height: height }} />;
->>>>>>> main
 };
 
 export default TimeSeries;
