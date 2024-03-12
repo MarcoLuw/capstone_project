@@ -23,6 +23,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('detail_customer/all', views.DetailCustomerApi), # This one will be deleted later
-    path('api/', include('authentication.urls')),
+    path('authen/', include('authentication.urls')),
     path('userdb/', include('userdb.urls')),
 ]
