@@ -14,4 +14,8 @@ RUN apk add --virtual .build-deps --no-cache postgresql-dev gcc python3-dev musl
 
 COPY . ./
 
-CMD [ "python", "manage.py", "runserver", "0.0.0.0:8000" ]
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["sh", "entrypoint.sh"]
+
+# CMD [ "python", "manage.py", "runserver", "0.0.0.0:8000" ]
