@@ -30,7 +30,7 @@ const RestLogin = ({ className, ...rest }) => {
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     try {
                         axios
-                        .post(API_SERVER + 'login', {
+                        .post(API_SERVER + 'authen/login', {
                             email: values.email,
                             password: values.password,
                         })
