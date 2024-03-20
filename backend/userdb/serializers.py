@@ -12,3 +12,6 @@ class DatabaseConnectionSerializer(serializers.Serializer):
     password = serializers.CharField(style={'input_type': 'password'})
     host = serializers.CharField(max_length=100)
     port = serializers.IntegerField()
+
+class FileUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
