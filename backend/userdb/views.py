@@ -7,6 +7,8 @@ from .serializers import DatabaseConnectionSerializer, FileUploadSerializer
 import pymysql
 import psycopg2
 import os
+
+from .processData import ProcessData
 # Create your views here.
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -66,9 +68,11 @@ class ImportDataFromFileView(APIView):
         file = serializer.validated_data['file']
         self.saveFile(file)
 
-        """ Processing area for the file """
+        """ Processing area for the file """    
+        dataProcessor = ProcessData(file)
+        json_data = dataProcessor.createFile()
 
-        return Response({"message": "File uploaded successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "File uploaded successfully.", "data": json_data}, status=status.HTTP_200_OK)
 
     def saveFile(self, file):
         if not os.path.exists(ROOT_PATH + '/storage'):
@@ -78,15 +82,3 @@ class ImportDataFromFileView(APIView):
                 destination.write(chunk)
         return ROOT_PATH + '/' + file.name
         
-
-    # def post(self, request, *args, **kwargs):
-        # serializer = FileUploadSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     file = serializer.validated_data['file']
-            
-
-        #     """ Processing area for the file """
-
-        #     return Response({"message": "File uploaded successfully."}, status=status.HTTP_200_OK)
-        
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
