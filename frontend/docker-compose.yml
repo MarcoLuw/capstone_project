@@ -5,6 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: react-frontend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
     ports:
       - 3000:3000
     environment:
