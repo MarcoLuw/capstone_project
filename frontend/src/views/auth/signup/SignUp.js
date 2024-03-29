@@ -31,7 +31,7 @@ const SignUp1 = () => {
 
                                     <p className="mb-2">
                                         Already have an account?{' '}
-                                        <NavLink to="/auth/signin" className="f-w-400">
+                                        <NavLink to="/auth/login" className="f-w-400">
                                             Login
                                         </NavLink>
                                     </p>
