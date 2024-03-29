@@ -37,25 +37,13 @@ export const renderRoutes = (routes = []) => (
 const routes = [
     {
         exact: true,
-        guard: GuestGuard,
-        path: '/auth/signin',
-        component: lazy(() => import('./views/auth/signin/SignIn1'))
-    },
-    {
-        exact: true,
-        guard: GuestGuard,
-        path: '/auth/signup',
-        component: lazy(() => import('./views/auth/signup/SignUp1'))
-    },
-    {
-        exact: true,
         path: '/auth/login',
-        component: lazy(() => import('./views/auth/signin/SignIn2'))
+        component: lazy(() => import('./views/auth/signin/SignIn'))
     },
     {
         exact: true,
         path: '/auth/register',
-        component: lazy(() => import('./views/auth/signup/SignUp1'))
+        component: lazy(() => import('./views/auth/signup/SignUp'))
     },
     {
         path: '*',
@@ -65,60 +53,30 @@ const routes = [
             {
                 exact: true,
                 path: '/dashboard',
-                component: lazy(() => import('./views/dashboard/DashDefault'))
-            },
-
-            {
-                exact: true,
-                path: '/basic/button',
-                component: lazy(() => import('./views/ui-elements/basic/BasicButton'))
-            },
-            {
-                exact: true,
-                path: '/basic/badges',
-                component: lazy(() => import('./views/ui-elements/basic/BasicBadges'))
-            },
-            {
-                exact: true,
-                path: '/basic/breadcrumb',
-                component: lazy(() => import('./views/ui-elements/basic/BasicBreadcrumb'))
-            },
-            {
-                exact: true,
-                path: '/basic/collapse',
-                component: lazy(() => import('./views/ui-elements/basic/BasicCollapse'))
-            },
-            {
-                exact: true,
-                path: '/basic/tabs-pills',
-                component: lazy(() => import('./views/ui-elements/basic/BasicTabsPills'))
-            },
-            {
-                exact: true,
-                path: '/basic/typography',
-                component: lazy(() => import('./views/ui-elements/basic/BasicTypography'))
+                component: lazy(() => import('./views/report/dashboard'))
             },
 
             {
                 exact: true,
                 path: '/create',
-                component: lazy(() => import('./views/forms/FormsElements'))
+                component: lazy(() => import('./views/home/create'))
             },
             {
                 exact: true,
                 path: '/browse',
-                component: lazy(() => import('./views/tables/BootstrapTable'))
+                component: lazy(() => import('./views/home/browse'))
             },
 
             {
                 exact: true,
                 path: '/forecast',
-                component: lazy(() => import('./views/charts/nvd3-chart'))
+                component: lazy(() => import('./views/report/forecast'))
             },
+
             {
                 exact: true,
-                path: '/maps/google-map',
-                component: lazy(() => import('./views/maps/GoogleMaps'))
+                path: '/datasource',
+                component: lazy(() => import('./views/report/datasource/data'))
             },
 
             {
