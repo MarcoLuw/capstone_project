@@ -29,7 +29,7 @@ const RestRegister = ({ className, ...rest }) => {
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
 
                             axios
-            .post(API_SERVER + 'register', {
+            .post(API_SERVER + 'authen/register', {
                 username: values.username,
                 email: values.email,
                 password: values.password,
@@ -52,7 +52,7 @@ const RestRegister = ({ className, ...rest }) => {
             });
                     try {
                         axios
-                        .post(API_SERVER + 'register', {
+                        .post(API_SERVER + 'authen/register', {
                             username: values.username,
                             email: values.email,
                             password: values.password,
