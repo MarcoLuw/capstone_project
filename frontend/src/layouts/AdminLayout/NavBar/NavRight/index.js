@@ -21,18 +21,18 @@ const NavRight = () => {
     const [listOpen, setListOpen] = useState(false);
 
     const handleLogout = () => {
-        axios
-            .post(API_SERVER + 'authen/users/logout', {}, { headers: { Authorization: `${account.token}` } })
-            .then(function (response) {
-                // Force the LOGOUT
-                //if (response.data.success) {
-                dispatcher({ type: LOGOUT });
-                //} else {
-                //    console.log('response - ', response.data.msg);
-                //}
+        // Gửi request đến server để logout
+        axios.post('http://localhost:8000/authen/logout')
+            .then(response => {
+                // Kiểm tra phản hồi từ server
+                if (response.data.message === 'success') {
+                    // Nếu logout thành công, chuyển hướng người dùng đến trang login
+                    window.location.href = '/auth/login';
+                }
             })
-            .catch(function (error) {
-                console.log('error - ', error);
+            .catch(error => {
+                // Xử lý lỗi nếu có (ví dụ: thông báo cho người dùng)
+                console.error('Logout failed:', error);
             });
     };
 
@@ -130,23 +130,17 @@ const NavRight = () => {
                         </Dropdown.Menu>
                     </Dropdown>
                 </ListGroup.Item>
-                <ListGroup.Item as="li" bsPrefix=" ">
-                    <Dropdown>
-                        <Dropdown.Toggle as={Link} variant="link" to="#" className="displayChatbox" onClick={() => setListOpen(true)}>
-                            <i className="icon feather icon-mail" />
-                        </Dropdown.Toggle>
-                    </Dropdown>
-                </ListGroup.Item>
+        
                 <ListGroup.Item as="li" bsPrefix=" ">
                     <Dropdown className="drp-user">
                         <Dropdown.Toggle as={Link} variant="link" to="#" id="dropdown-basic">
-                            <i className="icon feather icon-settings" />
+                            <i className="icon feather icon-user" />
                         </Dropdown.Toggle>
                         <Dropdown.Menu alignRight className="profile-notification">
                             <div className="pro-head">
                                 <img src={avatar1} className="img-radius" alt="User Profile" />
                                 <span>
-                                    User Menu
+                                    User
                                 </span>
                                 <Link to="#" className="dud-logout" onClick={handleLogout} title="Logout">
                                     <i className="feather icon-log-out" />
@@ -161,16 +155,6 @@ const NavRight = () => {
                                 <ListGroup.Item as="li" bsPrefix=" ">
                                     <Link to="#" className="dropdown-item">
                                         <i className="feather icon-user" /> Profile
-                                    </Link>
-                                </ListGroup.Item>
-                                <ListGroup.Item as="li" bsPrefix=" ">
-                                    <Link to="#" className="dropdown-item">
-                                        <i className="feather icon-mail" /> My Messages
-                                    </Link>
-                                </ListGroup.Item>
-                                <ListGroup.Item as="li" bsPrefix=" ">
-                                    <Link to="#" className="dropdown-item">
-                                        <i className="feather icon-lock" /> Lock Screen
                                     </Link>
                                 </ListGroup.Item>
                                 <ListGroup.Item as="li" bsPrefix=" ">
