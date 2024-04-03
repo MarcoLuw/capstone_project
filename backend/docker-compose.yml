@@ -3,6 +3,10 @@ services:
   db:
     image: postgres:16-alpine
     container_name: postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
     ports:
       - '5432:5432'
     environment:
@@ -13,27 +17,15 @@ services:
       - ../data/db:/var/lib/postgresql/data/
     restart: always
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - '3000:3000'
-  #   environment:
-  #     - WDS_SOCKET_HOST=127.0.0.1 
-  #     - CHOKIDAR_USEPOLLING=true
-  #     - WATCHPACK_POLLING=true 
-  #   volumes:
-  #     - ./frontend:/app/frontend
-  #     - /app/frontend/node_modules
-  #   depends_on:
-  #     - backend
-
   backend: 
     build: 
       context: .
       dockerfile: Dockerfile
     container_name: django-backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
     ports:
       - '8000:8000'
     restart: always
@@ -41,3 +33,21 @@ services:
       - '.:/app/backend'
     depends_on:
       - db
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: root
+    restart: always
+    volumes:
+      - ../user_db/mysql:/var/lib/mysql

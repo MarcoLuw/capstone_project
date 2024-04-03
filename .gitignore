@@ -1,3 +1,5 @@
 .venv/
 data/
 backend/db/backups/
+storage/
+user_db/

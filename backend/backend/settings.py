@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    # 'backend',
+    'backend',
     'authentication',
+    'userdb',
 ]
 
 MIDDLEWARE = [
@@ -88,6 +89,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
