@@ -43,13 +43,20 @@ const menuItems = {
                     icon: 'feather icon-trending-up'
                 },
                 {
-                    id: 'Chatbot',
-                    title: 'Chatbot',
+                    id: 'Datasource',
+                    title: 'Data Sources',
                     type: 'item',
-                    url: '/chat-bot',
-                    classes: 'nav-item',
-                    icon: 'feather icon-message-square'
-                }
+                    url: '/datasource',
+                    icon: 'feather icon-box'
+                },
+                // {
+                //     id: 'Chatbot',
+                //     title: 'Chatbot',
+                //     type: 'item',
+                //     url: '/chat-bot',
+                //     classes: 'nav-item',
+                //     icon: 'feather icon-message-square'
+                // }
             ]
         },
         {
@@ -73,121 +80,7 @@ const menuItems = {
                     icon: 'feather icon-help-circle'
                 }
             ]
-        },
-        {
-            id: 'Account',
-            title: 'Account',
-            type: 'group',
-            icon: 'icon-navigation',
-            children: [
-                {
-                    id: 'login',
-                    title: 'Logout',
-                    type: 'item',
-                    url: '/auth/login',
-                    target: true,
-                    breadcrumbs: false,
-                    icon: 'feather icon-log-out'
-                }
-            ]
         }
-        // {
-        //     id: 'ui-element',
-        //     title: 'UI ELEMENT',
-        //     type: 'group',
-        //     icon: 'icon-ui',
-        //     children: [
-        //         {
-        //             id: 'basic',
-        //             title: 'Components',
-        //             type: 'collapse',
-        //             icon: 'feather icon-box',
-        //             children: [
-        //                 {
-        //                     id: 'button',
-        //                     title: 'Button',
-        //                     type: 'item',
-        //                     url: '/basic/button'
-        //                 },
-        //                 {
-        //                     id: 'badges',
-        //                     title: 'Badges',
-        //                     type: 'item',
-        //                     url: '/basic/badges'
-        //                 },
-        //                 {
-        //                     id: 'breadcrumb',
-        //                     title: 'Breadcrumb',
-        //                     type: 'item',
-        //                     url: '/basic/breadcrumb'
-        //                 },
-        //                 {
-        //                     id: 'collapse',
-        //                     title: 'Collapse',
-        //                     type: 'item',
-        //                     url: '/basic/collapse'
-        //                 },
-        //                 {
-        //                     id: 'tabs-pills',
-        //                     title: 'Tabs & Pills',
-        //                     type: 'item',
-        //                     url: '/basic/tabs-pills'
-        //                 },
-        //                 {
-        //                     id: 'typography',
-        //                     title: 'Typography',
-        //                     type: 'item',
-        //                     url: '/basic/typography'
-        //                 },
-        //                 {
-        //                     id: 'forms',
-        //                     title: 'Forms',
-        //                     type: 'item',
-        //                     url: '/forms/form-basic'
-        
-        //                 },
-        //                 {
-        //                     id: 'maps',
-        //                     title: 'Maps',
-        //                     type: 'item',
-        //                     url: '/maps/google-map'
-                           
-        //                 },
-        //                 {
-        //                     id: 'bootstrap',
-        //                     title: 'Bootstrap Table',
-        //                     type: 'item',
-        //                     url: '/tables/bootstrap'
-                    
-        //                 },
-        //                 {
-        //                     id: 'chat-bot',
-        //                     title: 'Chatbot',
-        //                     type: 'item',
-        //                     url: '/chat-bot',
-        //                     classes: 'nav-item'
-                           
-        //                 },
-        //                 {
-        //                     id: 'register',
-        //                     title: 'Sign UP (template)',
-        //                     type: 'item',
-        //                     url: '/auth/register',
-        //                     target: true,
-        //                     breadcrumbs: false
-        //                 },
-        //                 {
-        //                     id: 'login',
-        //                     title: 'Sign IN (template)',
-        //                     type: 'item',
-        //                     url: '/auth/login',
-        //                     target: true,
-        //                     breadcrumbs: false
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        // }
     ]
 };
 

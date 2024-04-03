@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Row, Col, Form, Card, Button } from 'react-bootstrap';
 import  MainCard from '../../../components/Card/MainCard';
+// import { Responsive, WidthProvider } from 'react-grid-layout';
+
 
 import TimeSeries from './chart/TimeSeries';
 import Product from './chart/Product';
@@ -95,6 +97,17 @@ const DashDefault = () => {
         setTopProduct(product);
         setTopCategory(category)
     };
+
+    // const ResponsiveGridLayout = WidthProvider(Responsive);
+
+    // const layouts = {
+    //     lg: [
+    //         { i: 'totalSalesCard', x: 0, y: 0, w: 4, h: 2 }, // ví dụ: 'i' là ID của card, 'x' và 'y' là vị trí, 'w' và 'h' là độ rộng và cao
+    //         // Thêm các layout khác tương tự...
+    //     ],
+    //     // Có thể định nghĩa cho các kích thước khác nhau (md, sm, ...)
+    // };
+
 
     return (
         <React.Fragment>

@@ -1,8 +1,8 @@
-import React, { useState ,useRef } from 'react';
+import React, { useState ,useRef} from 'react';
 import { Row, Col, Card, Form, Button, Modal} from 'react-bootstrap';
-import ProductTableComponent from '../dashboard/DashDefault/chart/ProductDetail';
+import PreviewData from './previewdata';
 import axios from 'axios';
-import { API_SERVER } from './../../config/constant'
+import { API_SERVER } from '../../config/constant'
 // import {InputGroup, FormControl, DropdownButton, Dropdown} from 'react-bootstrap';
 
 
@@ -14,6 +14,10 @@ const FormsElements = () => {
     const [showModal, setShowModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false); // Thêm state này để quản lý modal thành công
     const [errorMessage, setErrorMessage] = useState(''); // State để hiển thị thông báo lỗi
+
+    // State mới để lưu trữ dữ liệu từ API
+    const [data, setData] = useState([]);
+
 
     // Khởi tạo state connect_db để lưu trữ thông tin database
     const [connect_db, setConnectDb] = useState({
@@ -66,6 +70,31 @@ const FormsElements = () => {
         }));
     };
 
+    const handleFileChange = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+    
+            try {
+                const response = await axios.post(API_SERVER + '/userdb/api/import-file/', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+    
+                if (response.data.message === "File uploaded successfully.") {
+                    setData(response.data.data)
+                    setShowSuccessModal(true); // Hiển thị modal thông báo thành công
+                }
+            } catch (error) {
+                console.error("There was an error uploading the file:", error);
+                setErrorMessage("Error uploading file");
+            }
+        }
+    };
+
      // Hàm để gửi dữ liệu đến backend bằng axios
      const handleSubmit = async () => {
         try {
@@ -113,11 +142,18 @@ const FormsElements = () => {
                                             </div>
                                             <Card.Text>
                                                 <Button variant="outline-primary" onClick={handleUploadClick}>Upload File</Button>
-                                                <input type="file" ref={fileInputRef} style={{ display: 'none' }} />
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    style={{ display: 'none' }}
+                                                    onChange={handleFileChange} 
+                                                />
                                             </Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
+
+
                                 <Col md={6} className="d-flex justify-content-start align-items-center">
                                     <Card className="text-center" style={{ width: '90%' }}> 
                                         <Card.Body>
@@ -178,24 +214,6 @@ const FormsElements = () => {
                                         <Form.Label>Port (optional)</Form.Label>
                                         <Form.Control type="text" name="port" placeholder="Enter Port number (Default 3306)" onChange={handleInputChange} />
                                     </Form.Group>
-                                            {/* <fieldset>
-                                                <Form.Group>
-                                                    <Form.Label>Data Connectivity mode</Form.Label>
-                                                    <Form.Check 
-                                                        type="radio"
-                                                        label="Import"
-                                                        name="dataConnectivityMode"
-                                                        id="importMode"
-                                                        defaultChecked
-                                                    />
-                                                    <Form.Check 
-                                                        type="radio"
-                                                        label="DirectQuery"
-                                                        name="dataConnectivityMode"
-                                                        id="directQueryMode"
-                                                    />
-                                                </Form.Group>
-                                            </fieldset> */}
                                             <Button variant="secondary" onClick={handleClose}>
                                                 Close
                                             </Button>
@@ -225,7 +243,7 @@ const FormsElements = () => {
                             <Card.Title as="h5">Preview Data</Card.Title>
                         </Card.Header>
                         <Card.Body style={{ padding: 0, marginTop: '-2rem' }}>
-                            <ProductTableComponent height="1200px" />
+                            <PreviewData data={data} height="1200px" />
                         </Card.Body> 
                         
                     </Card>
