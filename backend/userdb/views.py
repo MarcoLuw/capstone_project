@@ -14,6 +14,7 @@ from .processData import ProcessData
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 # STORAGE_PATH = os.path.join(ROOT_PATH, 'storage')
 
+""" Import data from a database """
 class ImportDataView(APIView):
     def post(self, request):
         serializer = DatabaseConnectionSerializer(data=request.data)
@@ -33,18 +34,21 @@ class ImportDataView(APIView):
                 except:
                     return Response({"Error": "Could not connect to the database."}, status=status.HTTP_400_BAD_REQUEST)
             elif engine == 'mysql':
-                conn = pymysql.connect(database=name, user=user, password=password, host=host, port=port)
+                try:
+                    conn = pymysql.connect(database=name, user=user, password=password, host=host, port=port)
+                except:
+                    return Response({"Error": "Could not connect to the database."}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"Error": "Unsupported database engine."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # cursor = conn.cursor()
-            # cursor.execute("SELECT * FROM some_table")
-            # rows = cursor.fetchall()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM test limit 10;")
+            rows = cursor.fetchall()
 
-            # for row in rows:
-            #     pass
+            for row in rows:
+                print(row)
 
-            # conn.close()
+            conn.close()
             return Response({"message": "Data imported succesfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -55,6 +59,7 @@ class ImportDataView(APIView):
         }
         return default_ports[engine]
     
+""" Import data from a file """
 class ImportDataFromFileView(APIView):
     # parser_classes = (MultiPartParser, FormParser)
 
