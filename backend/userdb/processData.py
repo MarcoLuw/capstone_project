@@ -12,7 +12,7 @@ class ProcessData:
         self.file = file
 
     """ Get data from file """
-    def createFile(self):
+    def getSampleDataUI(self):
         with open(os.path.join(STORAGE_PATH, self.file.name), 'r', encoding='utf-8-sig') as file:
             csv_reader = csv.reader(file)
             columns = next(csv_reader)
