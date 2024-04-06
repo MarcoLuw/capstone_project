@@ -51,3 +51,4 @@ services:
     restart: always
     volumes:
       - ../user_db/mysql:/var/lib/mysql
+      
