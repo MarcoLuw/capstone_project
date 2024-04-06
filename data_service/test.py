@@ -45,7 +45,9 @@ def upload_file():
 
 def create_new_user():
     username = "DucTien"
-    bucket_name = username
+    bucket_name = username  
+    # Todo: write a sub process using mc to create new user
+
     try:
         found = client.bucket_exists(bucket_name)
 
