@@ -1,5 +1,5 @@
 const data = [
-  {"order_date":"2022-01-01","product_name":"Bột chiên đa dụng","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Nguyên liệu làm bánh","order_count":5,"order_quantity":50,"total_sale":950000},
+{"order_date":"2022-01-01","product_name":"Bột chiên đa dụng","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Nguyên liệu làm bánh","order_count":5,"order_quantity":50,"total_sale":950000},
 {"order_date":"2022-01-02","product_name":"Miến sườn heo","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":1,"order_quantity":1,"total_sale":210000},
 {"order_date":"2022-01-03","product_name":"Đường phèn","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng bột","order_count":2,"order_quantity":8,"total_sale":288000},
 {"order_date":"2022-01-04","product_name":"Lạp xưởng heo","product_category":"Thực phẩm đóng gói","product_subcategory":"Xúc xích, lạp xưởng","order_count":1,"order_quantity":2,"total_sale":234000},
@@ -24,7 +24,7 @@ const data = [
 {"order_date":"2022-01-23","product_name":"Dao bào","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng nhà bếp","order_count":1,"order_quantity":4,"total_sale":180000},
 {"order_date":"2022-01-24","product_name":"Nắp chắn dầu","product_category":"Đồ gia dụng","product_subcategory":"Đồ sử dụng một lần","order_count":1,"order_quantity":4,"total_sale":300000},
 {"order_date":"2022-01-25","product_name":"Mắm ruốc Huế","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng nước","order_count":3,"order_quantity":10,"total_sale":310000},
-{"order_date":"2022-01-26","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg \/ Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":5,"total_sale":814000},
+{"order_date":"2022-01-26","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":5,"total_sale":814000},
 {"order_date":"2022-01-27","product_name":"Heo hộp khác Pork Luncheon Meat","product_category":"Thực phẩm đóng gói","product_subcategory":"Đồ hộp","order_count":1,"order_quantity":13,"total_sale":994500},
 {"order_date":"2022-01-28","product_name":"Cá thu hộp","product_category":"Thực phẩm đóng gói","product_subcategory":"Đồ hộp","order_count":6,"order_quantity":47,"total_sale":893000},
 {"order_date":"2022-01-29","product_name":"Bắp Hạt Đông Lạnh","product_category":"Thực phẩm đông lạnh","product_subcategory":"Rau củ quả đông lạnh","order_count":4,"order_quantity":35,"total_sale":420000},
@@ -114,7 +114,7 @@ const data = [
 {"order_date":"2022-04-24","product_name":"Mì khoai tây","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":7,"order_quantity":79,"total_sale":331800},
 {"order_date":"2022-04-25","product_name":"Bình thủy điện","product_category":"Đồ gia dụng","product_subcategory":"Đồ điện gia đình","order_count":1,"order_quantity":1,"total_sale":830000},
 {"order_date":"2022-04-26","product_name":"Heo hộp khác Picnic Shoulder Categoria Extra","product_category":"Thực phẩm đóng gói","product_subcategory":"Đồ hộp","order_count":1,"order_quantity":1,"total_sale":162000},
-{"order_date":"2022-04-27","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg \/ Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":5,"total_sale":814000},
+{"order_date":"2022-04-27","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":5,"total_sale":814000},
 {"order_date":"2022-04-28","product_name":"Muối hồng Himalaya","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng bột","order_count":10,"order_quantity":33,"total_sale":577500},
 {"order_date":"2022-04-29","product_name":"Gia vị nấu phở, bún, hủ tiếu","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng bột","order_count":1,"order_quantity":5,"total_sale":200000},
 {"order_date":"2022-04-30","product_name":"Mắm ruốc Huế","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng nước","order_count":1,"order_quantity":7,"total_sale":217000},
@@ -391,7 +391,7 @@ const data = [
   {"order_date":"2023-01-29","product_name":"Nhấc nồi","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng nhà bếp","order_count":3,"order_quantity":12,"total_sale":552000},
   {"order_date":"2023-01-30","product_name":"Bánh Xếp Kiểu Nhật","product_category":"Thực phẩm đông lạnh","product_subcategory":"Thực phẩm đông lạnh khác","order_count":1,"order_quantity":3,"total_sale":136500},
   {"order_date":"2023-02-01","product_name":"Xúc xích bò Gold","product_category":"Thực phẩm đóng gói","product_subcategory":"Xúc xích, lạp xưởng","order_count":3,"order_quantity":20,"total_sale":420000},
-  {"order_date":"2023-02-02","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg \/ Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":3,"total_sale":488400},
+  {"order_date":"2023-02-02","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":3,"total_sale":488400},
   {"order_date":"2023-02-03","product_name":"Mì Lẩu","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":12,"order_quantity":121,"total_sale":677600},
   {"order_date":"2023-02-04","product_name":"Rau củ đóng hộp","product_category":"Thực phẩm đóng gói","product_subcategory":"Đồ hộp","order_count":1,"order_quantity":3,"total_sale":112500},
   {"order_date":"2023-02-05","product_name":"Cháo ăn liền","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":11,"order_quantity":69,"total_sale":814200},
@@ -410,7 +410,7 @@ const data = [
   {"order_date":"2023-02-18","product_name":"Bánh que &","product_category":"Thực phẩm đóng gói","product_subcategory":"Bánh","order_count":6,"order_quantity":18,"total_sale":342000},
   {"order_date":"2023-02-19","product_name":"Snack khoai tây Big Sheet","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn vặt","order_count":9,"order_quantity":96,"total_sale":576000},
   {"order_date":"2023-02-20","product_name":"Bánh bông lan","product_category":"Thực phẩm đóng gói","product_subcategory":"Bánh","order_count":3,"order_quantity":22,"total_sale":418000},
-  {"order_date":"2023-02-21","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg \/ Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":2,"total_sale":325600},
+  {"order_date":"2023-02-21","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":2,"total_sale":325600},
   {"order_date":"2023-02-22","product_name":"Nhấc nồi","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng nhà bếp","order_count":2,"order_quantity":12,"total_sale":552000},
   {"order_date":"2023-02-23","product_name":"Lạp xưởng heo","product_category":"Thực phẩm đóng gói","product_subcategory":"Xúc xích, lạp xưởng","order_count":1,"order_quantity":4,"total_sale":468000},
   {"order_date":"2023-02-24","product_name":"Cá Viên Cao Cấp Gói 500G","product_category":"Thực phẩm đông lạnh","product_subcategory":"Thực phẩm chế biến sẵn","order_count":2,"order_quantity":3,"total_sale":117000},
@@ -488,7 +488,7 @@ const data = [
   {"order_date":"2023-05-07","product_name":"Bánh que &","product_category":"Thực phẩm đóng gói","product_subcategory":"Bánh","order_count":2,"order_quantity":39,"total_sale":741000},
   {"order_date":"2023-05-08","product_name":"Bột rau câu","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Nguyên liệu làm bánh","order_count":3,"order_quantity":26,"total_sale":481000},
   {"order_date":"2023-05-09","product_name":"Ly thủy tinh","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng phòng ăn","order_count":6,"order_quantity":98,"total_sale":392000},
-  {"order_date":"2023-05-10","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg \/ Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":4,"total_sale":651200},
+  {"order_date":"2023-05-10","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":4,"total_sale":651200},
   {"order_date":"2023-05-11","product_name":"Túi đựng rác size lớn","product_category":"Đồ gia dụng","product_subcategory":"Đồ sử dụng một lần","order_count":2,"order_quantity":3,"total_sale":246000},
   {"order_date":"2023-05-12","product_name":"Heo hộp khác Pork Luncheon Meat","product_category":"Thực phẩm đóng gói","product_subcategory":"Đồ hộp","order_count":1,"order_quantity":2,"total_sale":153000},
   {"order_date":"2023-05-13","product_name":"Dao bào","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng nhà bếp","order_count":2,"order_quantity":20,"total_sale":900000},
@@ -519,7 +519,7 @@ const data = [
   {"order_date":"2023-06-07","product_name":"Cháo Yến Mạch, Chà Là Và Hồ Đào","product_category":"Thực phẩm khô","product_subcategory":"Ngũ cốc","order_count":1,"order_quantity":3,"total_sale":474000},
   {"order_date":"2023-06-08","product_name":"Tương chao","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng nước","order_count":2,"order_quantity":18,"total_sale":243000},
   {"order_date":"2023-06-09","product_name":"Snack khoai tây Big Sheet","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn vặt","order_count":9,"order_quantity":94,"total_sale":564000},
-  {"order_date":"2023-06-10","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg \/ Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":2,"total_sale":325600},
+  {"order_date":"2023-06-10","product_name":"Bột Mì Làm Bánh Mì \"La Farina” Tipo 0 (5Kg Bao)","product_category":"Thực phẩm khô","product_subcategory":"Bột các loại","order_count":1,"order_quantity":2,"total_sale":325600},
   {"order_date":"2023-06-11","product_name":"Nước đường","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Gia vị dạng bột","order_count":3,"order_quantity":12,"total_sale":480000},
   {"order_date":"2023-06-12","product_name":"Bột nổi","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Nguyên liệu làm bánh","order_count":3,"order_quantity":15,"total_sale":555000},
   {"order_date":"2023-06-13","product_name":"Bắp Hạt Đông Lạnh","product_category":"Thực phẩm đông lạnh","product_subcategory":"Rau củ quả đông lạnh","order_count":7,"order_quantity":58,"total_sale":696000},
@@ -633,7 +633,7 @@ const data = [
   {"order_date":"2023-10-01","product_name":"Cháo ăn liền","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":5,"order_quantity":20,"total_sale":236000},
   {"order_date":"2023-10-02","product_name":"Cháo ăn liền","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":2,"order_quantity":19,"total_sale":224200},
   {"order_date":"2023-10-03","product_name":"Kẹo mềm","product_category":"Thực phẩm đóng gói","product_subcategory":"Kẹo","order_count":2,"order_quantity":7,"total_sale":140000},
-  {"order_date":"2023-10-04","product_name":"Thớt","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng nhà bếp","order_count":1,"order_quantity":1,"total_sale":120000},
+  {"order_date":"2023-10-04","product_name":"Thớt","product_category":"Đồ gia dụng","product_subcategory":"Đồ dùng nhà bếp","order_count":1,"order_quantity":1,"total_sale":120000},  
   {"order_date":"2023-10-05","product_name":"Máy xay sinh tố","product_category":"Đồ gia dụng","product_subcategory":"Đồ điện gia dụng nhà bếp","order_count":1,"order_quantity":1,"total_sale":360000},
   {"order_date":"2023-10-06","product_name":"Bột chiên đa dụng","product_category":"Gia vị - nguyên liệu nấu ăn","product_subcategory":"Nguyên liệu làm bánh","order_count":3,"order_quantity":25,"total_sale":475000},
   {"order_date":"2023-10-07","product_name":"Chả Quế Ngon","product_category":"Thực phẩm tươi sống","product_subcategory":"Thực phẩm sơ chế","order_count":1,"order_quantity":1,"total_sale":225000},
@@ -693,131 +693,146 @@ const data = [
   {"order_date":"2023-11-30","product_name":"Mì Lẩu","product_category":"Thực phẩm đóng gói","product_subcategory":"Thực phẩm ăn liền","order_count":5,"order_quantity":54,"total_sale":302400}
   ];
 
-  function calculateTotalSales(starttime, endtime) {
-    let totalSales = 0;
-    for (const item of data) {
-        if (item.order_date >= starttime && item.order_date <= endtime) {
-            totalSales += item.total_sale;
+
+function get_column() {
+    const columnTypes = {};
+    const sampleItem = data[0]; // Lấy một mục nhập mẫu từ dữ liệu
+
+    // Duyệt qua mỗi trường trong mục nhập mẫu để xác định kiểu dữ liệu
+    for (const key in sampleItem) {
+        const value = sampleItem[key];
+        if (typeof value === 'number') {
+            columnTypes[key] = 'number';
+        } else if (typeof value === 'string' && isNaN(Date.parse(value))) {
+            columnTypes[key] = 'text';
+        } else if (typeof value === 'string' && !isNaN(Date.parse(value))) {
+            columnTypes[key] = 'date';
         }
     }
-    return totalSales;
+
+    return columnTypes;
 }
 
-function calculateTotalOrders(starttime, endtime) {
-  let totalOrders = 0;
-  for (const item of data) {
-      if (item.order_date >= starttime && item.order_date <= endtime) {
-          totalOrders += item.order_count; // Giả sử mỗi item là một đơn hàng
-      }
-  }
-  return totalOrders;
+
+  // Biến toàn cục để lưu trữ dữ liệu đã lọc
+let current_data = [];
+
+function filter_time_data(timefield, starttime, endtime) {
+    // Lọc dữ liệu dựa trên khoảng thời gian
+    current_data = data.filter(item => {
+        // Lấy giá trị thời gian từ cột `timefield` và so sánh với `starttime` và `endtime`
+        const timeValue = item[timefield];
+        return timeValue >= starttime && timeValue <= endtime;
+    });
+
+    // Kết quả `current_data` sẽ tự động cập nhật với dữ liệu đã lọc
 }
 
-function calculateTotalQuantity(starttime, endtime) {
-  let totalQuantity = 0;
-  for (const item of data) {
-      if (item.order_date >= starttime && item.order_date <= endtime) {
-          totalQuantity += item.order_quantity;
-      }
-  }
-  return totalQuantity;
-}
-
-function prepareDataForTimeSeries(startTime, endTime) {
-  let ordersByMonth = {};
-  let salesByMonth = {};
-
-  data.forEach(item => {
-      if (item.order_date >= startTime && item.order_date <= endTime) {
-          const month = item.order_date.substr(0, 7).replace('-', '/'); // Chuyển đổi 'YYYY-MM' thành 'YYYY/MM'
-          if (!ordersByMonth[month]) {
-              ordersByMonth[month] = 0;
-              salesByMonth[month] = 0;
+function filter_field_data(list_field) {
+  current_data = data.filter(item => {
+      // Kiểm tra mỗi điều kiện lọc trên từng trường
+      for (const field in list_field) {
+          const condition = list_field[field];
+          if (Array.isArray(condition)) {
+              // Nếu điều kiện là mảng, kiểm tra xem giá trị của trường có nằm trong mảng không
+              if (!condition.includes(item[field])) {
+                  return false;
+              }
+          } else if (typeof condition === 'object' && condition !== null) {
+              // Nếu điều kiện là đối tượng với các khoảng giá trị, kiểm tra giá trị của trường
+              const { start, end } = condition;
+              if (item[field] < start || item[field] > end) {
+                  return false;
+              }
           }
-          ordersByMonth[month] += item.order_count;
-          salesByMonth[month] += item.total_sale;
       }
+      return true;
+  });
+}
+
+
+function get_data_card(field, agg) {
+  let total = 0;
+  let count = 0;
+  const distinctValues = new Set();
+  let isNumber = true; // Giả sử ban đầu trường là kiểu số
+
+  current_data.forEach(item => {
+    const value = item[field];
+    if (typeof value === 'string') {
+      isNumber = false; // Nếu phát hiện trường là kiểu chuỗi, cập nhật biến kiểm tra
+    } else {
+      total += value; // Cộng dồn chỉ khi giá trị là số
+    }
+    count += 1;
+    distinctValues.add(value);
   });
 
-  // Chuyển đổi dữ liệu tính toán thành mảng theo định dạng mong muốn
-  return Object.keys(ordersByMonth).map(month => ({
-      Month: month.replace('-', '/'), // Chuyển đổi 'YYYY-MM' thành 'MM/YYYY'
-      Orders: ordersByMonth[month],
-      TotalSales: salesByMonth[month]
-  }));
-}
-
-function calculateChange(startTime, endTime) {
-  const currentYearSales = calculateTotalSales(startTime, endTime);
-
-  const lastYearStartTime = new Date(startTime);
-  lastYearStartTime.setFullYear(lastYearStartTime.getFullYear() - 1);
-  const lastYearEndTime = new Date(endTime);
-  lastYearEndTime.setFullYear(lastYearEndTime.getFullYear() - 1);
-
-  const lastYearSales = calculateTotalSales(
-      lastYearStartTime.toISOString().split('T')[0], 
-      lastYearEndTime.toISOString().split('T')[0]
-  );
-
-  if (lastYearSales === 0) {
-      return currentYearSales > 0 ? 'Infinity' : 0; // Trả về 'Infinity' nếu năm trước không có doanh thu nhưng năm này có
+  if (!isNumber && (agg === 'SUM' || agg === 'AVERAGE')) {
+    return 0; // Trả về 0 cho SUM và AVERAGE nếu trường là kiểu chuỗi
   }
 
-  const change = ((currentYearSales - lastYearSales) / lastYearSales) * 100;
-  return change.toFixed(1); // Làm tròn đến một chữ số thập phân
+  switch (agg) {
+    case 'SUM':
+      return total;
+    case 'AVERAGE':
+      return count > 0 ? total / count : 0; // Tránh chia cho 0
+    case 'COUNT':
+      return count;
+    case 'DISTINCT':
+      return distinctValues.size;
+    default:
+      return 0;  // Trả về 0 cho các loại tổng hợp không xác định
+  }
 }
 
-function calculateTopSalesByProduct(startTime, endTime) {
-  const salesByProduct = {};
-
-  for (const item of data) {
-      if (item.order_date >= startTime && item.order_date <= endTime) {
-          const productName = item.product_name;
-          if (!salesByProduct[productName]) {
-              salesByProduct[productName] = 0;
-          }
-          salesByProduct[productName] += item.total_sale;
+function get_data_bcp(categoryfield, valuefield, agg) {
+    const result = {};
+    // Duyệt qua dữ liệu để tính toán dựa trên agg
+    current_data.forEach(item => {
+      const category = item[categoryfield];
+      const value = item[valuefield];
+      if (!result[category]) {
+        result[category] = { count: 0, sum: 0, distinct: new Set() };
       }
-  }
-
-  // Chuyển đổi thành mảng và sắp xếp dựa trên Total_Sale
-  const sortedSales = Object.entries(salesByProduct)
-      .map(([product, totalSale]) => ({ Product: product, TotalSales: totalSale }))
-      .sort((a, b) => b.TotalSales - a.TotalSales); // Sắp xếp từ cao xuống thấp
-
-  // Trả về top 10
-  return sortedSales.slice(0, 10);
-}
-
-function calculateSalesByCategory(startTime, endTime) {
-  const salesByCategory = {};
-
-  for (const item of data) {
-      if (item.order_date >= startTime && item.order_date <= endTime) {
-          const category = item.product_category;
-          if (!salesByCategory[category]) {
-              salesByCategory[category] = 0;
-          }
-          salesByCategory[category] += item.total_sale;
+      result[category].sum += value;
+      result[category].count += 1;
+      result[category].distinct.add(value);
+    });
+  
+    // Chuyển đổi kết quả dựa trên agg và chuẩn bị mảng cho việc sắp xếp
+    const output = Object.keys(result).map(category => {
+      let aggValue;
+      switch (agg) {
+        case 'SUM':
+          aggValue = result[category].sum;
+          break;
+        case 'AVERAGE':
+          aggValue = result[category].sum / result[category].count;
+          break;
+        case 'COUNT':
+          aggValue = result[category].count;
+          break;
+        case 'DISTINCT':
+          aggValue = result[category].distinct.size;
+          break;
+        default:
+          aggValue = 0; // Mặc định là 0 nếu không khớp với bất kỳ trường hợp nào
       }
+      return { "categoryfield": category, "valuefield": aggValue };
+    });
+  
+    return output.sort((a, b) => b.valuefield - a.valuefield).slice(0, 10);
   }
-
-  // Chuyển đổi thành mảng
-  return Object.keys(salesByCategory).map(category => ({
-      Category: category,
-      Sales: salesByCategory[category]
-  }));
-}
 
 
 module.exports = {
-  calculateTotalSales, 
-  calculateTotalOrders,
-  calculateTotalQuantity,
-  prepareDataForTimeSeries,
-  calculateChange,
-  calculateTopSalesByProduct,
-  calculateSalesByCategory
+  get_column,
+  get_data_bcp,
+  get_data_card,
+  filter_time_data,
+  filter_field_data
 };
-  
+
+
+ 
