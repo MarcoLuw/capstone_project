@@ -1,30 +1,42 @@
-import React, { useState } from 'react';
-import { Row, Col, Form, Card, Button } from 'react-bootstrap';
+import React, { useState, useEffect} from 'react';
+import {Modal, Row, Col, Form, Card, Button } from 'react-bootstrap';
 import  MainCard from '../../../components/Card/MainCard';
-// import { Responsive, WidthProvider } from 'react-grid-layout';
 
-
-import TimeSeries from './chart/TimeSeries';
-import Product from './chart/Product';
-import Category from './chart/Category';
-import ProductTableComponent from './chart/ProductDetail';
+import LineColumnChart from '../chart/Linecolumnchart';
+import Barchart from '../chart/Barchart';
+import Columnchart from '../chart/Columnchart';
+import Piechart from '../chart/Piechart';
 
 function formatNumber(number) {
     return number.toLocaleString('de-DE', {
-        minimumFractionDigits: 0, // Đảm bảo luôn có ít nhất một chữ số sau dấu thập phân
-        maximumFractionDigits: 1  // Không cho phép hơn một chữ số sau dấu thập phân
+        minimumFractionDigits: 0, 
+        maximumFractionDigits: 1 
     });
 }
 
-
 // Import hàm từ function.js
-const { calculateTotalSales, calculateTotalOrders, 
-    calculateTotalQuantity, prepareDataForTimeSeries, 
-    calculateTopSalesByProduct, calculateChange,
-    calculateSalesByCategory} = require('./function');
+const {get_column,filter_time_data, 
+    get_data_bcp, get_data_card} = require('./function')
 
 
-function TimeFilter({ onFilterApply }) {
+const DashDefault = () => {
+
+    const [columns, setColumns] = useState({});
+    const [selectedField, setSelectedField] = useState('');
+    
+    const [updateVisualizations, setUpdateVisualizations] = useState(false);
+
+    const [showAddModal, setShowAddModal] = useState(false); // Để hiển thị/ẩn modal
+    const [newVis, setNewVis] = useState({
+    width: '',
+    height: '',
+    title: '',
+    type: '',
+    id: '',
+    data: {},
+    fields: [] 
+    });
+
     const [startTime, setStartTime] = useState('2023-09-01');
     const [endTime, setEndTime] = useState('2023-11-30');
 
@@ -33,229 +45,367 @@ function TimeFilter({ onFilterApply }) {
 
     const applyFilter = (e) => {
         e.preventDefault();
-        const sales = calculateTotalSales(startTime, endTime);
-        const orders = calculateTotalOrders(startTime, endTime);
-        const quantity = calculateTotalQuantity(startTime, endTime);
-        const timeseries = prepareDataForTimeSeries(startTime, endTime);
-        const change = calculateChange(startTime, endTime);
-        const product = calculateTopSalesByProduct(startTime, endTime);
-        const category = calculateSalesByCategory(startTime, endTime);
-        onFilterApply(sales, orders, quantity, timeseries, change, product, category);
+        filter_time_data("order_date", startTime, endTime);
+        setUpdateVisualizations(true);
     };
 
-    return (
-        <Col md={6} xl={12}>
-            <Card>
-                <Card.Body>
-                    <Form onSubmit={applyFilter}>
-                        <Row form>
-                            <Col md={6}>
-                                <Form.Group>
-                                    <Form.Label>Start Time:</Form.Label>
-                                    <Form.Control 
-                                        type="date" 
-                                        name="startTime" 
-                                        value={startTime}
-                                        onChange={handleStartTimeChange} />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group>
-                                    <Form.Label>End Time:</Form.Label>
-                                    <Form.Control 
-                                        type="date" 
-                                        name="endTime" 
-                                        value={endTime}
-                                        onChange={handleEndTimeChange} />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <Button variant="primary" type="submit">Apply</Button>
-                    </Form>
-                </Card.Body>
-            </Card>
-        </Col>
-    );
-}
+    useEffect(() => {
+        setColumns(get_column());
+    }, []);
 
-const DashDefault = () => {
+    const renderFunctionOptions = () => {
+        if (!selectedField || !columns[selectedField]) {
+            return null;
+        }
 
-    const [totalSales, setTotalSales] = useState(0);
-    const [totalChange, setTotalChange] = useState(0);
-    const [totalOrders, setTotalOrders] = useState(0);
-    const [totalQuantity, setTotalQuantity] = useState(0);
-    const [timeSeriesData, setTimeSeriesData] = useState([]);
-    const [TopProduct, setTopProduct] = useState([]);
-    const [TopCategory, setTopCategory] = useState([]);
+        const fieldType = columns[selectedField];
+        let options = [];
+        if (fieldType === 'number') {
+            options = [
+                { label: 'Sum', value: 'SUM' },
+                { label: 'Average', value: 'AVERAGE' },
+                { label: 'Count', value: 'COUNT' },
+                { label: 'Count (Distinct)', value: 'DISTINCT' }
+            ];
+        } else if (fieldType === 'text') {
+            options = [
+                { label: 'Count', value: 'COUNT' },
+                { label: 'Count (Distinct)', value: 'DISTINCT' }
+            ];
+        }
 
-    const handleFilterApply = (sales, orders, quantity, timeseries, change, product, category) => {
-        setTotalSales(sales);
-        setTotalOrders(orders);
-        setTotalQuantity(quantity);
-        setTimeSeriesData(timeseries);
-        setTotalChange(change);
-        setTopProduct(product);
-        setTopCategory(category)
+        return options.map(option => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+        ));
     };
 
-    // const ResponsiveGridLayout = WidthProvider(Responsive);
+    useEffect(() => {
+        if (updateVisualizations) {
+            const newVisualList = visualList.map(visualization => {
+                const { type, fields } = visualization;
+                let newData = {};
+                if (type === 'Card') {
+                    newData = get_data_card(fields.field, fields.agg);
+                } else if (type === 'Barchart' || type === 'Columnchart' || type === 'Piechart') {
+                    newData = get_data_bcp(fields.categoryfield, fields.valuefield, fields.agg);
+                }
+                return { ...visualization, data: newData };
+            });
+            setVisualList(newVisualList);
+    
+            setUpdateVisualizations(false);
+        }
+    }, [updateVisualizations]); 
+    
 
-    // const layouts = {
-    //     lg: [
-    //         { i: 'totalSalesCard', x: 0, y: 0, w: 4, h: 2 }, // ví dụ: 'i' là ID của card, 'x' và 'y' là vị trí, 'w' và 'h' là độ rộng và cao
-    //         // Thêm các layout khác tương tự...
-    //     ],
-    //     // Có thể định nghĩa cho các kích thước khác nhau (md, sm, ...)
-    // };
 
+    const [visualList, setVisualList] = useState([
+        { width: 4, height: '5px', title: 'Total Sales', type: 'Card', id: 'totalsale', data: {}, 
+        fields: {"field":"total_sale", "agg":"SUM"}},
+
+        { width: 4, height: '5px', title: 'Total Orders', type: 'Card', id: 'totalorder', data: {}, 
+        fields: {"field":"order_count", "agg":"SUM"}},
+
+        { width: 4, height: '5px', title: 'Total Quantity', type: 'Card', id: 'totalquantity', data: {}, 
+        fields: {"field":"order_quantity", "agg":"SUM"}},
+
+        { width: 12, height: '360px', title: 'Time Series', type: 'Columnchart', id: 'column-chart', data: {}, 
+        fields: {"categoryfield":"order_date","valuefield":"total_sale","agg":"SUM"}},
+
+        { width: 6, height: '360px', title: 'Top Product', type: 'Barchart', id: 'bar-chart', data: {}, 
+        fields: {"categoryfield":"product_name","valuefield":"total_sale","agg":"SUM"}},
+
+        { width: 6, height: '360px', title: 'Category', type: 'Piechart', id: 'pie-chart', data: {}, 
+        fields: {"categoryfield":"product_category","valuefield":"total_sale","agg":"SUM"}},
+    ]);
+
+    const renderVisualization = (visualization) => {
+        const fields = visualization.fields;
+        switch (visualization.type) {
+            case 'Card':
+                if (fields) {
+                    const {field, agg } = fields;
+                    visualization.data = get_data_card(field, agg);
+                }
+                return (
+                    <MainCard title={visualization.title} isOption>
+                        <Card.Body>
+                            <div style={{ height: visualization.height, display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
+                                <h3 className="f-w-300">
+                                    {formatNumber(visualization.data)}
+                                </h3>
+                            </div>
+                        </Card.Body>
+                    </MainCard>
+                );
+            case 'LineColumnChart':
+                return (
+                    <MainCard title={visualization.title} isOption>
+                        <LineColumnChart id={visualization.id} data={visualization.data} height={visualization.height} />
+                    </MainCard>
+                );
+            case 'Barchart':
+                if (fields) {
+                    const { categoryfield, valuefield, agg } = fields;
+                    visualization.data = get_data_bcp(categoryfield, valuefield, agg);
+                }
+                return (
+                    <MainCard title={visualization.title} isOption>
+                        <Barchart id={visualization.id} data={visualization.data} height={visualization.height} />
+                    </MainCard>
+                );
+            case 'Columnchart':
+                if (fields) {
+                    const { categoryfield, valuefield, agg } = fields;
+                    visualization.data = get_data_bcp(categoryfield, valuefield, agg);
+                }
+                return (
+                    <MainCard title={visualization.title} isOption>
+                        <Columnchart id={visualization.id} data={visualization.data} height={visualization.height} />
+                    </MainCard>
+                );
+            case 'Piechart':
+                if (fields) {
+                    const { categoryfield, valuefield, agg } = fields;
+                    visualization.data = get_data_bcp(categoryfield, valuefield, agg);
+                }
+                return (
+                    <MainCard title={visualization.title} isOption>
+                        <Piechart id={visualization.id} data={visualization.data} height={visualization.height} />
+                    </MainCard>
+                );
+            default:
+                return null;
+        }
+    };
+
+    const renderDashboard = () => {
+        return visualList.map((visualization, index) => (
+            <Col key={index} xl={visualization.width}>
+                {renderVisualization(visualization)}
+            </Col>
+        ));
+    };
+
+
+    const updateField = (key, value) => {
+        let fieldsCopy = {...newVis.fields, agg: 'SUM'};
+        fieldsCopy[key] = value;
+        setNewVis({...newVis, fields: fieldsCopy});
+    };
+
+    const handleAddVisualization = () => {
+        const newVisId = `vis-${new Date().getTime()}`;
+        const defaultHeight = newVis.type === 'Card' ? '5px' : '360px';
+    
+        const updatedNewVis = {
+            ...newVis,
+            id: newVisId,
+            width: newVis.width || '6',
+            height: newVis.height || defaultHeight,
+            title: newVis.title || 'New Visualization',
+            fields: newVis.fields 
+        };
+    
+        if (updatedNewVis) {
+            setVisualList([...visualList, updatedNewVis]);
+            setShowAddModal(false);
+            setNewVis({
+                width: '',
+                height: '',
+                title: '',
+                type: '',
+                id: '',
+                data: {},
+                fields: []
+            });
+        } else {
+            console.error('Missing fields for visualization');
+        }
+    };
+    
 
     return (
-        <React.Fragment>
+
+ 
+            <React.Fragment>
             <Row>
-            <TimeFilter onFilterApply={handleFilterApply} />
-            <Col md={6} xl={4}>
+
+            <Col xl={12} className="d-flex justify-content-start">
+                    <Button variant="secondary"
+                        onClick={() => setShowAddModal(true)} 
+                        style={{margin: '20px' }}>
+                        <i className="feather icon-plus" style={{ color: 'white' }}></i> Add Visualization
+                    </Button>
+
+                    <Button variant="secondary"
+                        onClick={() => setShowAddModal(true)}
+                        style={{margin: '20px' }}>
+                        <i className="feather icon-filter" style={{ color: 'white' }}></i> Add Filter
+                    </Button>
+            </Col>
+
+
+
+            <Col xl={12}>
                     <Card>
                         <Card.Body>
-                            <h6 className="mb-4" style={{ fontSize: '20px' }}>Total Sales (VND)</h6>
-                            <div className="row d-flex align-items-center">
-                                <div className="col-9">
-                                    <h3 className="f-w-300 d-flex align-items-center m-b-0">
-                                        {/* <i className="feather icon-arrow-up text-c-green f-30 m-r-5" />  */}
-                                        {formatNumber(totalSales)}
-                                    </h3>
-                                </div>
-
-                               
-                            </div>
-                         
+                            <Form onSubmit={applyFilter}>
+                                <Row form>
+                                    <Col xl={6}>
+                                        <Form.Group>
+                                            <Form.Label>Start Time:</Form.Label>
+                                            <Form.Control
+                                                type="date" 
+                                                name="startTime" 
+                                                value={startTime}
+                                                onChange={handleStartTimeChange} />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xl={6}>
+                                        <Form.Group>
+                                            <Form.Label>End Time:</Form.Label>
+                                            <Form.Control
+                                                type="date" 
+                                                name="endTime" 
+                                                value={endTime}
+                                                onChange={handleEndTimeChange} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Button variant="primary" onClick={applyFilter}>Apply</Button>
+                            </Form>
                         </Card.Body>
                     </Card>
-                </Col>
-                <Col md={6} xl={4}>
-                    <Card>
-                        <Card.Body>
-                            <h6 className="mb-4" style={{ fontSize: '20px' }}>Total Orders</h6>
-                            <div className="row d-flex align-items-center">
-                                <div className="col-9">
-                                    <h3 className="f-w-300 d-flex align-items-center m-b-0">
-                                        {/* <i className="feather icon-arrow-down text-c-red f-30 m-r-5" /> */}
-                                        {formatNumber(totalOrders)}
-                                    </h3>
-                                </div>
+            </Col>
+            
+            {renderDashboard()}
 
 
-                            </div>
-                         
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xl={4}>
-                    <Card>
-                        <Card.Body>
-                            <h6 className="mb-4" style={{ fontSize: '20px' }}>Total Quantity</h6>
-                            <div className="row d-flex align-items-center">
-                                <div className="col-9">
-                                    <h3 className="f-w-300 d-flex align-items-center m-b-0">
-                                        {/* <i className="feather icon-arrow-up text-c-green f-30 m-r-5" />  */}
-                                        {formatNumber(totalQuantity)}
-                                    </h3>
-                                </div>
+            <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
+            <Modal.Header closeButton>
+                <Modal.Title>Add Visualization</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form>
 
-                              
-                            </div>
-                          
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={6} xl={8}>
+                    <Form.Group>
+                        <Form.Label>Title</Form.Label>
+                        <Form.Control type="text" placeholder="Enter title" value={newVis.title} onChange={(e) => setNewVis({...newVis, title: e.target.value})} />
+                    </Form.Group>
 
-                    <MainCard title = "Time Series" isOption>
-                        <TimeSeries data={timeSeriesData} height="360px" />
-                    </MainCard>
-                </Col>
-                <Col md={6} xl={4}>
-                    <Card>
-                        <Card.Header className="borderless">
-                            <Card.Title as="h5">
-                                Growth Rate
-                            </Card.Title>
-                        </Card.Header>
+                    <Form.Group>
+                    <Form.Label>Width: {newVis.width}</Form.Label>
+                    <Form.Control 
+                        type="range" 
+                        min="1" 
+                        max="12" 
+                        value={newVis.width} 
+                        onChange={(e) => setNewVis({...newVis, width: e.target.value})} 
+                    />
+                    </Form.Group>
 
-                        <hr style={{ margin: '0', borderTop: '1px solid rgba(0,0,0,0.1)' }} /> {/* Đường kẻ phân cách */}
+                    
+                    <Form.Group>
+                        <Form.Label>Type</Form.Label>
+                        <Form.Control as="select" value={newVis.type} onChange={(e) => setNewVis({...newVis, type: e.target.value})}>
+                            <option value="">Choose..</option>
+                            <option value="Card">Card</option>
+                            <option value="Barchart">Bar Chart</option>
+                            <option value="Columnchart">Column Chart</option>
+                            <option value="Piechart">Pie Chart</option>
+                           
+                        </Form.Control>
+                    </Form.Group>
+                    
+                    {newVis.type === 'Card' && (
+                        <>
+                            <Form.Group as={Row}>
+                            <Col>
+                                <Form.Label>Field</Form.Label>
+                                    <Form.Control
+                                        as="select"                                
+                                        onChange={e => {
+                                            const newField = e.target.value;
+                                            setSelectedField(newField); // Cập nhật trường được chọn
+                                            updateField('field', newField); // Cập nhật trường trong state visualization
+                                        }}>
+                                    
+                                        <option value="">Choose...</option>
+                                        {Object.keys(columns).map(field => (
+                                            <option key={field} value={field}>{field}</option>
+                                        ))}
+                                     </Form.Control>
+                            </Col>
+                            <Col>
+                                <Form.Label>Function</Form.Label>
+                                <Form.Control as="select" onChange={e => updateField('agg', e.target.value)}>
+                                    {renderFunctionOptions()}
+                                </Form.Control>
+                            </Col>
+                            </Form.Group>
+                        </>
+                    )}
 
-                        <Card.Body className="border-bottom">
-                        <div className="row d-flex align-items-center">
-                            <div className="col-auto">
-                            {
-                                totalChange >= 0 ?
-                                    <i className="feather icon-arrow-up f-30 text-c-green" style={{ fontSize: '60px' }} /> : 
-                                    <i className="feather icon-arrow-down f-30 text-c-red" style={{ fontSize: '60px' }} />  
-                            }
-                            </div>
-                            <div className="col">
-                                <h3 className="f-w-300" style={{ fontSize: '60px' }}>{totalChange}%</h3> {/* Tăng kích thước phần trăm */}
-                                <span className="d-block text-uppercase" style={{ fontSize: '10px' }}>vs previous year</span> {/* Tăng kích thước chữ */}
-                            </div>
-                        </div>
-                       
-                    </Card.Body>
+                    {(newVis.type === 'Barchart' || newVis.type === 'Columnchart' || newVis.type === 'Piechart' ) && (
+                        <>
+                            <Form.Group as={Row}>
+                                <Col>
+                                <Form.Label>Category Field</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        onChange={e => {
+                                            updateField('categoryfield', e.target.value); // Cập nhật trường trong state visualization
+                                        }}>
+                                    
+                                        <option value="">Choose...</option>
+                                        {Object.keys(columns).map(field => (
+                                            <option key={field} value={field}>{field}</option>
+                                        ))}
+                                     </Form.Control>
+                                </Col>
+                            </Form.Group>
 
+                            <Form.Group as={Row}>
+                                <Col>
+                                <Form.Label>Value Field</Form.Label>
+                                    <Form.Control
+                                         as="select"
+                                         onChange={e => {
+                                            const newValue = e.target.value;
+                                            setSelectedField(newValue); // Cập nhật trường được chọn
+                                            updateField('valuefield', newValue); // Cập nhật trường trong state visualization
+                                       }}>
+                                    
+                                        <option value="">Choose...</option>
+                                        {Object.keys(columns).map(field => (
+                                            <option key={field} value={field}>{field}</option>
+                                        ))}
+                                     </Form.Control>
+                                </Col>
+                            </Form.Group>
 
-                    </Card>
-                    <Card>
-                        <Card.Body className="border-bottom">
-                            <div className="row d-flex align-items-center">
-                                <div className="col-auto">
-                                    <i className="feather icon-zap f-30 text-c-green" />
-                                </div>
-                                <div className="col">
-                                    <h3 className="f-w-400">{formatNumber(totalSales/3)}</h3>
-                                    <span className="d-block text-uppercase" style={{ fontSize: '12px' }}>Sales Per Month (VND)</span>
-                                </div>
-                            </div>
-                        </Card.Body>
-                        <Card.Body>
-                            <div className="row d-flex align-items-center">
-                                <div className="col-auto">
-                                    <i className="feather icon-shopping-cart f-30 text-c-blue" />
-                                </div>
-                                <div className="col">
-                                    <h3 className="f-w-400">{formatNumber(totalOrders/3)}</h3>
-                                    <span className="d-block text-uppercase" style={{ fontSize: '12px' }}>Orders per month</span>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                            <Form.Group as={Row}>
+                            <Col>
+                                <Form.Label>Function</Form.Label>
+                                <Form.Control as="select" onChange={e => updateField('agg', e.target.value)}>
+                                    {renderFunctionOptions()}
+                                </Form.Control>
+                            </Col>
+                            </Form.Group>
+                        </>
+                    )}
+
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowAddModal(false)}>Close</Button>
+                <Button variant="primary" onClick={handleAddVisualization}>Add Visualization</Button>
+            </Modal.Footer>
+        </Modal>
+
                 
-
-                <Col md={6} xl={8}>
-                    <MainCard title = "Top Product" isOption>
-                    <Product data={TopProduct} height="360px" />
-                    </MainCard>
-                </Col>
-
-
-                <Col md={6} xl={4}>
-                    <MainCard title = "Category" isOption>
-                        <Category data={TopCategory} height="360px" />
-                    </MainCard>
-                </Col>
-
-                <Col md={6} xl={12}>
-                    <Card>
-                        <Card.Header>
-                            <Card.Title as="h5">Product Details</Card.Title>
-                        </Card.Header>
-                        <Card.Body style={{ padding: 0, marginTop: '-2rem' }}>
-                            <ProductTableComponent height="1200px" />
-                        </Card.Body>   
-                        
-                    </Card>
-                </Col>
-
-                
-            </Row>
+            </Row> 
         </React.Fragment>
     );
 };

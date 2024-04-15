@@ -6,8 +6,8 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import axios from 'axios';
 
 import ChatList from './ChatList';
-import { API_SERVER } from '../../../../config/constant';
-import { LOGOUT } from './../../../../store/actions';
+// import { API_SERVER } from '../../../../config/constant';
+// import { LOGOUT } from './../../../../store/actions';
 
 import avatar1 from '../../../../assets/images/user/avatar-1.jpg';
 import avatar2 from '../../../../assets/images/user/avatar-2.jpg';
@@ -15,8 +15,8 @@ import avatar3 from '../../../../assets/images/user/avatar-3.jpg';
 import avatar4 from '../../../../assets/images/user/avatar-4.jpg';
 
 const NavRight = () => {
-    const account = useSelector((state) => state.account);
-    const dispatcher = useDispatch();
+    // const account = useSelector((state) => state.account);
+    // const dispatcher = useDispatch();
 
     const [listOpen, setListOpen] = useState(false);
 
