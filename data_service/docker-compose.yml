@@ -33,17 +33,29 @@ services:
       MINIO_OPTS: "--console-address :9001"
       MINIO_CONFIG_ENV_FILE: "/etc/config.env"
     command: server --console-address ":9001" /data
+    networks:
+      - backend_backendnetwork
   mc:
     depends_on:
       - minio
     image: minio/mc
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
     environment:
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=miniopassword
       - AWS_REGION=us-east-1
+    networks:
+      - backend_backendnetwork
     entrypoint: >
       /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; tail -f /dev/null "
-      
+
+networks:
+  backend_backendnetwork:
+    external: true
+
 volumes:
   data-1:
   data-2:

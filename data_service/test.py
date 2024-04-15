@@ -2,6 +2,7 @@ from minio import Minio
 from minio.error import S3Error
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -10,6 +11,8 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 
 print(MINIO_ENDPOINT)
+print("MINIO_ACCESS_KEY:", MINIO_ACCESS_KEY)
+print("MINIO_SECRET_KEY:", MINIO_SECRET_KEY)
 
 client = Minio(MINIO_ENDPOINT,
     access_key=MINIO_ACCESS_KEY,
@@ -19,7 +22,7 @@ client = Minio(MINIO_ENDPOINT,
 
 def upload_file():
     try:
-        source_file = 'data_train.csv'
+        source_file = 'data_service\data_train.csv'
         bucket_name = 'raw-data'
         destination_file = source_file
 
@@ -84,6 +87,9 @@ def create_new_user():
             ],
         }
 
-        client.set_bucket_policy()
+        client.set_bucket_policy(bucket_name, json.dumps(policy))
     except S3Error as e:
         print("Error occured:", e)
+
+upload_file()  
+# create_new_user() 
