@@ -1,34 +1,31 @@
 import React, { useEffect } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
-const Product = ({ data, height }) => {
-    // Example data structure, replace with actual product sales data
+const Columnchart = ({ id, data, height }) => {
 
     useEffect(() => {
-        AmCharts.makeChart('bar-chart2', {
+        AmCharts.makeChart(id, {
             type: 'serial',
             theme: 'light',
-            rotate: true, // Rotate the chart to make bars horizontal
+            rotate: false,
             valueAxes: [{
                 id: 'v1',
-                position: 'left', // Change to left for horizontal bar
+                position: 'left', 
                 axisAlpha: 0,
                 lineAlpha: 0,
                 autoGridCount: false,
                 labelFunction: function (value) {
                     return +Math.round(value);
-                },
-                title: "Total Sales"
+                }
             }],
             graphs: [{
                 id: 'g1',
                 valueAxis: 'v1',
-                lineColor: '#a389d4',
-                fillColors: '#a389d4',
+                lineColor: '#1C4E80',
+                fillColors: '#1C4E80',
                 fillAlphas: 1,
                 type: 'column',
-                title: 'Total Sales:',
-                valueField: 'TotalSales',
+                valueField: 'valuefield',
                 legendValueText: '[[value]]',
                 balloonText: "[[category]]: <b>[[value]]</b>"
             }],
@@ -39,28 +36,28 @@ const Product = ({ data, height }) => {
                 cursorAlpha: 0,
                 valueLineAlpha: 0.2
             },
-            categoryField: 'Product', // Category field is now Product
+            categoryField: 'categoryfield', 
             categoryAxis: {
-                position: 'bottom', // Adjust position for horizontal layout
+                position: 'bottom', 
                 dashLength: 1,
                 gridAlpha: 0,
                 axisAlpha: 0,
                 lineAlpha: 0,
                 minorGridEnabled: true
             },
-            legend: {
-                useGraphSettings: true,
-                position: 'top'
-            },
+            // legend: {
+            //     useGraphSettings: true,
+            //     position: 'top'
+            // },
             balloon: {
                 borderThickness: 1,
                 shadowAlpha: 0
             },
             dataProvider: data
         });
-    }, [data]);
+    }, [id, data, height]);
 
-    return <div id="bar-chart2" className="bar-chart2" style={{ width: '100%', height: height }} />;
+    return <div id={id} style={{ width: '100%', height: height }} />;
 };
 
-export default Product;
+export default Columnchart;

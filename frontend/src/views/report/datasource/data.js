@@ -1,6 +1,6 @@
 import React, { useState ,useRef } from 'react';
 import { Row, Col, Card, Form, Button, Modal} from 'react-bootstrap';
-import ProductTableComponent from '../dashboard/chart/ProductDetail';
+import ProductTableComponent from '../chart/ProductDetail';
 
 
 const FormsElements = () => {

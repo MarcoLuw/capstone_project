@@ -1,14 +1,14 @@
 import React from 'react';
 import { ListGroup, Dropdown } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 
 import useWindowSize from '../../../../hooks/useWindowSize';
-import NavSearch from './NavSearch';
+// import NavSearch from './NavSearch';
 
 const NavLeft = () => {
     const windowSize = useWindowSize();
 
-    let dropdownRightAlign = false;
+    // let dropdownRightAlign = false;
 
     let navItemClass = ['nav-item'];
     if (windowSize.width <= 575) {
