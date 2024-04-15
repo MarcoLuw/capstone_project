@@ -5,6 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from .models import User
 
+import minio_connector.file_uploader as file_uploader
 import jwt, datetime
 
 # Create your views here.
@@ -41,14 +42,18 @@ class LoginView(APIView):
         # algorithm : the algorithm we want to use
         # jwt.encode() returns a string
         token = jwt.encode(payload, 'secret', algorithm='HS256')
+        access_key, secret_key = file_uploader.generate_dynamic_credentials(user.username)
 
         response = Response()
-        
+
         # Set the cookie with the token
         # httponly : the cookie cannot be accessed by javascript
         response.set_cookie(key='jwt', value=token, httponly=True)
+
         response.data = {
-            'jwt': token
+            'jwt': token,
+            'access_key': access_key,
+            'secret_key': secret_key
         }
 
         # Return the token
@@ -62,18 +67,21 @@ class UserView(APIView):
 
         # Check if the token exists
         if not token:
-            raise AuthenticationFailed('Unauthenticated!')
+            raise AuthenticationFailed('Token not existed! Unauthenticated!')
         
         try:
             # Decode the token
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+            raise AuthenticationFailed('Incompatible token! Unauthenticated!')
         
         # Get the user from the payload
         user = User.objects.filter(id=payload['id']).first()
+        if not user:
+            raise AuthenticationFailed('User not found!')
+        
         serializer = UserSerializer(user)
-
+        print(type(user))
         return Response(serializer.data)
 
 # Logout
