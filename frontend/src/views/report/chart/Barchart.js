@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
-const Barchart = ({ id, data, height }) => {
+const Barchart = ({ id, data, height, categoryfield, valuefield}) => {
 
     useEffect(() => {
         AmCharts.makeChart(id, {
@@ -10,6 +10,7 @@ const Barchart = ({ id, data, height }) => {
             rotate: true, // Rotate the chart to make bars horizontal
             valueAxes: [{
                 id: 'v1',
+                title: valuefield,
                 position: 'left', // Change to left for horizontal bar
                 axisAlpha: 0,
                 lineAlpha: 0,
@@ -39,6 +40,7 @@ const Barchart = ({ id, data, height }) => {
             categoryField: 'categoryfield', 
             categoryAxis: {
                 position: 'bottom', 
+                title: categoryfield,
                 dashLength: 1,
                 gridAlpha: 0,
                 axisAlpha: 0,
@@ -55,7 +57,7 @@ const Barchart = ({ id, data, height }) => {
             },
             dataProvider: data
         });
-    }, [id, data, height]);
+    }, [id, data, height, categoryfield, valuefield]);
 
     return <div id={id} style={{ width: '100%', height: height }} />;
 };

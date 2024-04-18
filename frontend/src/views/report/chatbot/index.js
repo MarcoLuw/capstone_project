@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Row, Col, Form, Button, InputGroup} from 'react-bootstrap';
-import Card from '../../components/Card/MainCard';
+import Card from '../../../components/Card/MainCard';
 
 const ChatbotPage = () => {
     const [messages, setMessages] = useState([]);

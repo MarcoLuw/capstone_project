@@ -52,12 +52,6 @@ const routes = [
         routes: [
             {
                 exact: true,
-                path: '/dashboard',
-                component: lazy(() => import('./views/report/dashboard'))
-            },
-
-            {
-                exact: true,
                 path: '/create',
                 component: lazy(() => import('./views/home/create'))
             },
@@ -69,21 +63,22 @@ const routes = [
 
             {
                 exact: true,
-                path: '/forecast',
-                component: lazy(() => import('./views/report/forecast'))
+                path: '/dashboard',
+                component: lazy(() => import('./views/report/dashboard'))
             },
 
             {
                 exact: true,
-                path: '/datasource',
-                component: lazy(() => import('./views/report/datasource/data'))
+                path: '/suggestion',
+                component: lazy(() => import('./views/report/suggestion'))
             },
 
             {
                 exact: true,
                 path: '/chat-bot',
-                component: lazy(() => import('./views/extra/Chatbot'))
+                component: lazy(() => import('./views/report/chatbot'))
             },
+            
             {
                 path: '*',
                 exact: true,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Table, Pagination } from 'react-bootstrap';
+import { Card, Table} from 'react-bootstrap';
 
 const PreviewData = ({ data }) => {
     // Số lượng mục trên mỗi trang
@@ -17,11 +17,6 @@ const PreviewData = ({ data }) => {
         currentPage * itemsPerPage
     );
 
-    // Helper function to change page
-    const setPage = (page) => {
-        const newPage = page < 1 ? 1 : page > pageCount ? pageCount : page;
-        setCurrentPage(newPage);
-    };
 
     // Lấy danh sách các cột từ dữ liệu đầu tiên (giả sử tất cả các hàng đều có cùng cấu trúc)
     const columns = data[0] ? Object.keys(data[0]) : [];

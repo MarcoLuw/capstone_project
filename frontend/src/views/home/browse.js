@@ -38,7 +38,7 @@ const BootstrapTable = () => {
                                     {reports.map((report) => (
                                         <tr key={report.id}>
                                             <td>
-                                                <a href="#" onClick={() => handleReportClick(report.id)}>
+                                                <a onClick={() => handleReportClick(report.id)}>
                                                     {report.name}
                                                 </a>
                                             </td>

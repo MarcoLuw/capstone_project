@@ -714,42 +714,52 @@ function get_column() {
 }
 
 
-  // Biến toàn cục để lưu trữ dữ liệu đã lọc
+// Biến toàn cục để lưu trữ dữ liệu đã lọc
 let current_data = [];
 
-function filter_time_data(timefield, starttime, endtime) {
-    // Lọc dữ liệu dựa trên khoảng thời gian
-    current_data = data.filter(item => {
-        // Lấy giá trị thời gian từ cột `timefield` và so sánh với `starttime` và `endtime`
-        const timeValue = item[timefield];
-        return timeValue >= starttime && timeValue <= endtime;
-    });
 
-    // Kết quả `current_data` sẽ tự động cập nhật với dữ liệu đã lọc
-}
-
-function filter_field_data(list_field) {
-  current_data = data.filter(item => {
-      // Kiểm tra mỗi điều kiện lọc trên từng trường
-      for (const field in list_field) {
-          const condition = list_field[field];
-          if (Array.isArray(condition)) {
-              // Nếu điều kiện là mảng, kiểm tra xem giá trị của trường có nằm trong mảng không
-              if (!condition.includes(item[field])) {
-                  return false;
-              }
-          } else if (typeof condition === 'object' && condition !== null) {
-              // Nếu điều kiện là đối tượng với các khoảng giá trị, kiểm tra giá trị của trường
-              const { start, end } = condition;
-              if (item[field] < start || item[field] > end) {
-                  return false;
-              }
-          }
+function filter_field_data(filters) {
+  current_data =  data.filter(item => {
+    for (const field in filters) {
+      const { type, values } = filters[field];
+      if (type === "includes" && !values.includes(item[field])) {
+        return false;
+      } else if (type === "range" && (item[field] < values.start || item[field] > values.end)) {
+        return false;
       }
-      return true;
+    }
+    return true;
   });
 }
 
+//INPUT:
+// const filters = {
+//   "product_name": { type: "includes", values: ["Mì Lẩu", "Nắp chắn dầu"] },
+//   "total_sale": { type: "range", values: { start: 200, end: 500000 } }
+// };
+
+
+
+function get_info_filter(field) {
+  if (typeof data[0][field] === 'number') {
+    let min = data[0][field], max = data[0][field];
+    data.forEach(item => {
+      if (item[field] < min) min = item[field];
+      if (item[field] > max) max = item[field];
+    });
+    return [min, max];
+  } else {
+    const uniqueValues = new Set();
+    data.forEach(item => {
+      uniqueValues.add(item[field]);
+    });
+    return Array.from(uniqueValues);
+  }
+}
+
+function get_data_table() {
+  return current_data
+}
 
 function get_data_card(field, agg) {
   let total = 0;
@@ -786,7 +796,7 @@ function get_data_card(field, agg) {
   }
 }
 
-function get_data_bcp(categoryfield, valuefield, agg) {
+function get_data_bcp(categoryfield, valuefield, agg, sort = "", top = "") {
     const result = {};
     // Duyệt qua dữ liệu để tính toán dựa trên agg
     current_data.forEach(item => {
@@ -799,9 +809,10 @@ function get_data_bcp(categoryfield, valuefield, agg) {
       result[category].count += 1;
       result[category].distinct.add(value);
     });
+
   
     // Chuyển đổi kết quả dựa trên agg và chuẩn bị mảng cho việc sắp xếp
-    const output = Object.keys(result).map(category => {
+    let output = Object.keys(result).map(category => {
       let aggValue;
       switch (agg) {
         case 'SUM':
@@ -821,8 +832,23 @@ function get_data_bcp(categoryfield, valuefield, agg) {
       }
       return { "categoryfield": category, "valuefield": aggValue };
     });
-  
-    return output.sort((a, b) => b.valuefield - a.valuefield).slice(0, 10);
+
+      // Xử lý sắp xếp dựa trên tham số 'sort'
+      if (sort === "asc") {
+          output.sort((a, b) => a.valuefield - b.valuefield);
+      } else if (sort === "desc") {
+          output.sort((a, b) => b.valuefield - a.valuefield);
+      }
+
+    // Kiểm tra và áp dụng giới hạn 'top' nếu có giá trị hợp lệ
+    if (top) {
+      const topNumber = parseInt(top, 10); // Chuyển đổi 'top' từ chuỗi sang số nguyên
+      if (!isNaN(topNumber)) {
+        output = output.slice(0, topNumber);
+      }
+    }
+      
+      return output;
   }
 
 
@@ -830,7 +856,8 @@ module.exports = {
   get_column,
   get_data_bcp,
   get_data_card,
-  filter_time_data,
+  get_data_table,
+  get_info_filter,
   filter_field_data
 };
 

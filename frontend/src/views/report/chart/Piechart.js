@@ -26,11 +26,12 @@ const Piechart = ({ id, data, height }) => {
             export: {
                 enabled: true
             },
-            colors: ['#7E909A', '#1C4E80', '#A5D8DD', '#EA6A47', '#0091D5', '#F1F1F1', '#202020'],
+            colors: [ '#1C4E80', '#7E909A', '#A5D8DD', '#EA6A47', '#0091D5', '#F1F1F1', '#202020'],
 
             responsive: {
                 enabled: true
             }
+
         });
     }, [id, data, height]);
 

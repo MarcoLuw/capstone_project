@@ -21,6 +21,12 @@
     width: 100%;
 }
 
+.custom-dropdown-menu {
+    max-height: 160px; /* Adjust based on your design */
+    overflow-y: auto;  /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents horizontal scroll */
+}
+
 .header-chat .h-list-footer .input-group {
     .btn-attach {
         padding: 0;

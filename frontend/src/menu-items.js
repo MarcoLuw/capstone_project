@@ -36,27 +36,20 @@ const menuItems = {
                     icon: 'feather icon-bar-chart'
                 },
                 {
-                    id: 'Forecast',
-                    title: 'Forecast',
+                    id: 'Suggestion',
+                    title: 'Suggestion',
                     type: 'item',
-                    url: '/forecast',
-                    icon: 'feather icon-trending-up'
+                    url: '/Suggestion',
+                    icon: 'feather icon-star'
                 },
                 {
-                    id: 'Datasource',
-                    title: 'Data Sources',
+                    id: 'Chatbot',
+                    title: 'Chatbot',
                     type: 'item',
-                    url: '/datasource',
-                    icon: 'feather icon-box'
-                },
-                // {
-                //     id: 'Chatbot',
-                //     title: 'Chatbot',
-                //     type: 'item',
-                //     url: '/chat-bot',
-                //     classes: 'nav-item',
-                //     icon: 'feather icon-message-square'
-                // }
+                    url: '/chat-bot',
+                    classes: 'nav-item',
+                    icon: 'feather icon-message-square'
+                }
             ]
         },
         {

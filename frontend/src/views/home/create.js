@@ -232,7 +232,7 @@ const FormsElements = () => {
                             </Row>
                             <Row>
                                 <Col className="text-center mt-3">
-                                    <a href="#">Don't understand how to connect your database? See the instruction.</a>
+                                    <a> Don't understand how to connect your database? See the instruction.</a>
                                 </Col>
                             </Row>
                         </Card.Body>

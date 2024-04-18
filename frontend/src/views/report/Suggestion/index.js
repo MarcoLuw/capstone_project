@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button} from 'react-bootstrap';
 import  MainCard from '../../../components/Card/MainCard';
 
-import ForecastSale from '../chart/FcSale';
-import TrendingProduct from '../chart/TrendingProduct';
 
 function TimeApply() {
     const [period, setPeriod] = useState('Week');
@@ -70,38 +68,14 @@ function TimeApply() {
     );
 }
 
-const Forecast = () => {
+const Suggestion = () => {
     return (
         <React.Fragment>
             <Row>
-            <TimeApply />
-                <Col md={12}>
-                    <MainCard title = "Total Sales (VND)" isOption>
-                        <ForecastSale id="chart1" height="500px" />
-                    </MainCard>
-                </Col>
-
-                <Col md={12}>
-                    <MainCard title = "Total Sales 2 (VND)" isOption>
-                        <ForecastSale id="chart2" height="500px" />
-                    </MainCard>
-                </Col>
-
-                <Col md={6} xl={12}>
-                    <Card>
-                        <Card.Header>
-                            <Card.Title as="h5">Trending Product</Card.Title>
-                        </Card.Header>
-                        <Card.Body style={{ padding: 0, marginTop: '-2rem' }}>
-                            <TrendingProduct height="1200px" />
-                        </Card.Body>   
-                        
-                    </Card>
-                </Col>
                 
             </Row>
         </React.Fragment>
     );
 };
 
-export default Forecast;
+export default Suggestion;

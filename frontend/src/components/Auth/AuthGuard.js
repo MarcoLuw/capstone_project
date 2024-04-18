@@ -3,7 +3,7 @@
 import { useSelector } from 'react-redux';
 
 const AuthGuard = ({ children }) => {
-    const account = useSelector((state) => state.account);
+    // const account = useSelector((state) => state.account);
     // const { isLoggedIn } = account;
 
     // if (!isLoggedIn) {

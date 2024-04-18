@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
-const Columnchart = ({ id, data, height }) => {
+const Columnchart = ({ id, data, height, categoryfield, valuefield}) => {
 
     useEffect(() => {
         AmCharts.makeChart(id, {
@@ -10,6 +10,7 @@ const Columnchart = ({ id, data, height }) => {
             rotate: false,
             valueAxes: [{
                 id: 'v1',
+                title: valuefield,
                 position: 'left', 
                 axisAlpha: 0,
                 lineAlpha: 0,
@@ -38,6 +39,7 @@ const Columnchart = ({ id, data, height }) => {
             },
             categoryField: 'categoryfield', 
             categoryAxis: {
+                title: categoryfield,
                 position: 'bottom', 
                 dashLength: 1,
                 gridAlpha: 0,
@@ -55,7 +57,7 @@ const Columnchart = ({ id, data, height }) => {
             },
             dataProvider: data
         });
-    }, [id, data, height]);
+    }, [id, data, height, categoryfield, valuefield]);
 
     return <div id={id} style={{ width: '100%', height: height }} />;
 };
