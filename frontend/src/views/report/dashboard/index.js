@@ -232,7 +232,7 @@ const DashDefault = () => {
     }, [filterList, columns, startTime, endTime]);
 
    //VISUALIZATION
-
+   
     const [visualList, setVisualList] = useState([
         { width: 4, height: '5px', title: 'Total Sales', type: 'Card', id: 'totalsale', data: {}, 
         fields: {"field":"total_sale", "agg":"SUM"}},
@@ -253,7 +253,7 @@ const DashDefault = () => {
         fields: {"categoryfield":"product_category","valuefield":"total_sale","agg":"SUM"}},
 
         { width: 12, height: '360px', title: 'Product Detail', type: 'Table', id: 'table', data: {}, 
-        fields: {}}
+        fields: ['order_date','product_name', "product_subcategory", "product_category", "order_count", "order_quantity", 'total_sale']}
     ]);
 
     const renderFunctionOptions = () => {
@@ -292,7 +292,7 @@ const DashDefault = () => {
                 } else if (type === 'Barchart' || type === 'Columnchart' || type === 'Piechart' || type === 'Linechart') {
                     newData = get_data_bcp(fields.categoryfield, fields.valuefield, fields.agg);
                 } else if (type === 'Table') {
-                    newData = get_data_table();
+                    newData = get_data_table(fields);
                 }
                 return { ...visualization, data: newData };
             });
@@ -373,7 +373,7 @@ const DashDefault = () => {
                     );
                 case 'Table':
                     if (fields) {
-                        visualization.data = get_data_table();
+                        visualization.data = get_data_table(fields);
                     }
                     return (
                         <MainCard title={visualization.title} isOption>
@@ -399,6 +399,32 @@ const DashDefault = () => {
         fieldsCopy[key] = value;
         setNewVis({...newVis, fields: fieldsCopy});
     };
+
+    // Hàm này cập nhật danh sách các trường khi người dùng thêm mới
+    const addFieldTable = (newField, index) => {
+        setNewVis(prevState => {
+            // Kiểm tra nếu newField là chuỗi rỗng, tức là yêu cầu thêm trường mới
+            if (newField === '') {
+                return {
+                    ...prevState,
+                    fields: [...prevState.fields, '']  // Thêm trường rỗng vào mảng `fields`
+                };
+            } else {
+                // Cập nhật giá trị cho trường hiện tại
+                // Sử dụng index để xác định trường nào đang được cập nhật
+                const updatedFields = prevState.fields.map((field, idx) =>
+                    idx === index ? newField : field
+                );
+                return {
+                    ...prevState,
+                    fields: updatedFields
+                };
+            }
+        });
+        console.log(newVis)
+    };
+    
+    
 
     const handleAddVisualization = () => {
         const newVisId = `vis-${new Date().getTime()}`;
@@ -603,30 +629,23 @@ const DashDefault = () => {
 
                     {newVis.type === 'Table' && (
                         <>
-                            <Form.Group as={Row}>
-                            <Col>
-                                <Form.Label>Field</Form.Label>
-                                    <Form.Control
-                                        as="select"                                
-                                        onChange={e => {
-                                            const newField = e.target.value;
-                                            setSelectedField(newField); // Cập nhật trường được chọn
-                                            updateField('field', newField); // Cập nhật trường trong state visualization
-                                        }}>
-                                    
-                                        <option value="">Choose...</option>
-                                        {Object.keys(columns).map(field => (
-                                            <option key={field} value={field}>{field}</option>
-                                        ))}
-                                     </Form.Control>
-                            </Col>
-                            <Col>
-                                <Form.Label>Function</Form.Label>
-                                <Form.Control as="select" onChange={e => updateField('agg', e.target.value)}>
-                                    {renderFunctionOptions()}
-                                </Form.Control>
-                            </Col>
-                            </Form.Group>
+                            {newVis.fields.map((field, index) => (
+                                <Form.Group as={Row} key={index}>
+                                    <Col>
+                                        <Form.Label>Field</Form.Label>
+                                        <Form.Control
+                                            as="select"  
+                                            value={field}                              
+                                            onChange={e => addFieldTable(e.target.value, index)}>
+                                            <option value="">Choose...</option>
+                                            {Object.keys(columns).map(col => (
+                                                <option key={col} value={col}>{col}</option>
+                                            ))}
+                                        </Form.Control>
+                                    </Col>
+                                </Form.Group>
+                            ))}
+                            <Button onClick={() => addFieldTable('')}>+ Add Field</Button>
                         </>
                     )}
 
