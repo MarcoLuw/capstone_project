@@ -39,7 +39,7 @@ const menuItems = {
                     id: 'Suggestion',
                     title: 'Suggestion',
                     type: 'item',
-                    url: '/Suggestion',
+                    url: '/suggestion',
                     icon: 'feather icon-star'
                 },
                 {

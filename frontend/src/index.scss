@@ -1,5 +1,25 @@
 @import 'assets/scss/style.scss';
-
+.message.user {
+    background-color: #f0f0f0; /* Màu nền cho tin nhắn người dùng */
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+  
+  .message.bot {
+    background-color: #435067; /* Màu nền cho tin nhắn của bot */
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+  
+  .chat-window {
+    margin-bottom: 20px;
+  }
+  
 .nav-outside.mob-backdrop {
     &.mob-fixed .pcoded-navbar {
         z-index: 1032;

@@ -1,44 +1,110 @@
 import React, { useState } from 'react';
 import { Row, Col, Form, Button, InputGroup} from 'react-bootstrap';
 import Card from '../../../components/Card/MainCard';
+import TablePreview from '../chart/Table'
+
+const table_customer = [
+    {
+        "customer_name": "Nguyễn Văn An",
+        "phone_number": "0912345678",
+        "address": "123 Đường ABC, Hà Nội",
+        "recency": "7 days",
+        "frequency": 12,
+        "monetary": "150,000,000 VND",
+        "segment": "Khách hàng VIP"
+    },
+    {
+        "customer_name": "Trần Thị Bảo",
+        "phone_number": "0923456789",
+        "address": "234 Đường DEF, TP.HCM",
+        "recency": "15 days",
+        "frequency": 10,
+        "monetary": "100,000,000 VND",
+        "segment": "Khách hàng trung thành"
+    },
+    {
+        "customer_name": "Phạm Hoàng Cường",
+        "phone_number": "0934567890",
+        "address": "345 Đường GHI, Đà Nẵng",
+        "recency": "30 days",
+        "frequency": 5,
+        "monetary": "50,000,000 VND",
+        "segment": "Khách hàng tiềm năng"
+    },
+    {
+        "customer_name": "Lê Thị Dung",
+        "phone_number": "0945678901",
+        "address": "456 Đường JKL, Cần Thơ",
+        "recency": "60 days",
+        "frequency": 2,
+        "monetary": "20,000,000 VND",
+        "segment": "Khách hàng mới"
+    },
+    {
+        "customer_name": "Hoàng Minh Ê",
+        "phone_number": "0956789012",
+        "address": "567 Đường MNO, Nha Trang",
+        "recency": "90 days",
+        "frequency": 1,
+        "monetary": "10,000,000 VND",
+        "segment": "Khách hàng có thể mất"
+    },
+    {
+        "customer_name": "Đỗ Thanh Gia",
+        "phone_number": "0967890123",
+        "address": "678 Đường PQR, Hải Phòng",
+        "recency": "120 days",
+        "frequency": 2,
+        "monetary": "5,000,000 VND",
+        "segment": "Khách hàng đã bỏ lỡ"
+    }
+]
+
 
 const ChatbotPage = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(true);
 
     const formatMessage = (message) => {
         return message.split('\n').map((line, index) => <p key={index}>{line}</p>);
       };
 
+    const chatbotResponses = [
+        { question: "Cho tôi biết doanh thu tháng 10", answer: "Doanh thu tháng 10 là 100 triệu đồng.", data:""},
+        { question: "Lợi nhuận của chúng ta thế nào", answer: "Lợi nhuận tháng này tăng 5% so với tháng trước.", data:""},
+        { question: "Số lượng sản phẩm bán ra", answer: "Chúng ta đã bán được 150 sản phẩm trong tháng này.", data:""},
+        { question: "Khách hàng mới có bao nhiêu", answer: "Tháng này chúng ta có 20 khách hàng mới.", data:""},
+        { question: "Cho tôi biết về thông tin khách hàng", answer: "Tháng này chúng ta có 20 khách hàng mới.", data: table_customer},
+    ];
+
+    const chatbot_response = (input) => {
+        const response = chatbotResponses.find(item => item.question.toLowerCase() === input.toLowerCase());
+        if (response) {
+            return { answer: response.answer, data: response.data };
+        }
+        return { answer: "Tôi không biết câu trả lời cho câu hỏi này.", data: "" };
+    };
+
     const handleSendMessage = () => {
         if (input.trim() !== '') {
-            const newUserMessage = { text: input, sender: 'user' };
-            const botResponseText = `Tháng 10:
-            Tổng số lượng đơn hàng: 160,796
-            Tổng số lượng sản phẩm bán được: 1,592,711
-            Tổng doanh thu: 527,326,651,800 VND
-            Tháng 11:
-            Tổng số lượng đơn hàng: 155,219 (giảm so với tháng 10)
-            Tổng số lượng sản phẩm bán được: 1,539,614 (giảm so với tháng 10)
-            Tổng doanh thu: 508,170,425,600 VND (giảm so với tháng 10)
-            Sản phẩm bán chạy nhất trong tháng 11:
-            Miến khác: 109,713 sản phẩm
-            Cafe đen lon: 79,846 sản phẩm
-            Cháo Yến Mạch Và Các Loại Dâu: 77,964 sản phẩm
-            Xay tiêu, tỏi: 60,368 sản phẩm
-            Cháo ly: 56,983 sản phẩm
-            Như vậy, so với tháng 10, tháng 11 có sự giảm nhẹ về tổng số lượng đơn hàng, tổng số lượng sản phẩm bán được và tổng doanh thu. Các sản phẩm bán chạy nhất trong tháng 11 chủ yếu là các loại thực phẩm và đồ uống.`
-
+            const newUserMessage = { text: input, sender: 'user', role: 'You' };
+            const { answer, data } = chatbot_response(input);
+            
+            const botResponseText = formatMessage(answer);
             const botResponse = { 
-                text: formatMessage(botResponseText), 
-                sender: 'bot' 
-              };
-
+                text: botResponseText, 
+                sender: 'bot', 
+                role: 'Assistant',
+                data
+            };
             
             setMessages(messages => [...messages, newUserMessage, botResponse]);
             setInput('');
+            setShowSuggestions(false);
         }
     };
+      
 
     const handleInputChange = (e) => {
         setInput(e.target.value);
@@ -52,11 +118,19 @@ const ChatbotPage = () => {
                         <div className="chat-window">
                             {messages.map((message, index) => (
                                 <div key={index} className={`message ${message.sender}`}>
-                                    {message.text}
+                                    <div>
+                                        <i className={`feather icon-${message.sender === 'bot' ? 'airplay' : 'user'}`} style={{ marginRight: '5px' }}></i>
+                                        <strong>{message.sender === 'bot' ? 'Assistant' : 'User'}</strong>
+                                    </div>
+                                    <div>{message.text}</div>
+                                    {message.sender === 'bot' && message.data && <TablePreview data={message.data} />}
                                 </div>
                             ))}
                         </div>
 
+                        {showSuggestions && (
+                            <>
+                        
                         <div
                         className="icon d-flex justify-content-center align-items-center">
                            <i className="feather icon-message-square f-30 text-c-blue" style={{ fontSize: '200px' }} /> 
@@ -98,6 +172,9 @@ const ChatbotPage = () => {
                             </div>
                         </div>
                         </div>
+
+                        </>
+                        )}
 
 
 

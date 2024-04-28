@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import AmCharts from '@amcharts/amcharts3-react';
 
 const Barchart = ({ id, data, height, categoryfield, valuefield}) => {
-
     useEffect(() => {
         AmCharts.makeChart(id, {
             type: 'serial',
