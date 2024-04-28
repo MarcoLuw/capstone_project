@@ -22,8 +22,8 @@ client = Minio(MINIO_ENDPOINT,
 
 def upload_file():
     try:
-        source_file = 'data_service\data_train.csv'
-        bucket_name = 'raw-data'
+        source_file = 'data_train.csv'
+        bucket_name = 'ductien'
         destination_file = source_file
 
         found = client.bucket_exists(bucket_name)
@@ -44,10 +44,10 @@ def upload_file():
         )
 
     except S3Error as exc:
-        print("error occurred.", exc)
+        raise exc
 
 def create_new_user():
-    username = "DucTien"
+    username = "logging"
     bucket_name = username  
     # Todo: write a sub process using mc to create new user
 
@@ -91,5 +91,34 @@ def create_new_user():
     except S3Error as e:
         print("Error occured:", e)
 
-upload_file()  
-# create_new_user() 
+
+try:
+    create_new_user()
+    # upload_file()
+except Exception as e: 
+    print(e)
+
+
+# spark-submit \
+#   --master spark://127.0.0.1:7077 \
+#   --deploy-mode cluster \
+#   --driver-memory 1g \
+#   --executor-memory 1g\
+#   --executor-cores 1 \
+#   --num-executors 1 \
+#   --py-files spark-test.py
+
+# curl -XPOST http://spark-master:6066/v1/submissions/create \
+# --header "Content-Type:application/json;charset=UTF-8" \
+# --data '{
+#   "appResource": "file:/Users/kayden.ho.int/Documents/capstone_project/data_service/spark-test.py",
+#   "sparkProperties": {
+#     "spark.master": "spark://spark-mas:7077",
+#     "spark.app.name": "SimpleDataFrameExample",
+#     "spark.driver.memory": "1g",
+#     "spark.driver.cores": "1",
+#   },
+#   "mainClass": "org.apache.spark.deploy.SparkSubmit",
+#   "action": "CreateSubmissionRequest",
+#   "appArgs": [ "/Users/kayden.ho.int/Documents/capstone_project/data_service/spark-test.py"]
+# }'
