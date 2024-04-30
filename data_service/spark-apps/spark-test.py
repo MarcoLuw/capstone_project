@@ -3,14 +3,14 @@ from pyspark.sql import SparkSession
 
 def main():
 
-    source_bucket = "ductien"
+    source_bucket = "test-user"
 
     spark = SparkSession.builder \
         .appName("CSV File to Delta Lake Table") \
         .enableHiveSupport() \
         .getOrCreate()
 
-    input_path = f"s3a://{source_bucket}/data_train.csv"
+    input_path = f"s3a://{source_bucket}/raw/data_train.csv"
     delta_path = f"s3a://{source_bucket}/delta/tables/"
 
     spark.sql("DROP SCHEMA IF EXISTS wba CASCADE")
