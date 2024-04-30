@@ -98,13 +98,18 @@ services:
     hostname: spark-master
     container_name: spark-master
     image: bitnami/spark:3.4.2
-    command: bin/spark-class org.apache.spark.deploy.master.Master
+    command: >
+      bash -c "rm -f /opt/bitnami/spark/jars/aws-java-sdk-bundle-1.12.262.jar
+      && rm -f /opt/bitnami/spark/jars/hadoop-aws-3.3.4.jar
+      && bin/spark-class org.apache.spark.deploy.master.Master"
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
-      - ./spark-apps:/opt/bitnami/spark-apps
-      # - ./hadoop-libs:/opt/spark/jars
+      - ./spark-apps/:/opt/bitnami/spark-apps/
+      - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-1.12.541.jar
+      - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.12.541.jar
+      - ./hadoop-libs/hadoop-aws-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.6.jar
       - ./spark-config/conf/master/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
       - ./spark-config/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
     environment:
@@ -132,7 +137,9 @@ services:
       - ./spark-apps:/opt/bitnami/spark-apps
       - ./spark-config/conf/worker/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
       - ./spark-config/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-      # - ./hadoop-libs:/opt/spark/jars
+      - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-1.12.541.jar
+      - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.12.541.jar
+      - ./hadoop-libs/hadoop-aws-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.6.jar
     networks:
       - data-services-network
 
