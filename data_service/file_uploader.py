@@ -43,4 +43,4 @@ def uploadFile(filepath: str, username: str):
         return None
 
 if __name__ == "__main__":
-    uploadFile('data_train.csv', 'test-user1')  # Adjust the path as necessary
+    uploadFile('data_train.csv', 'test-user')  # Adjust the path as necessary
