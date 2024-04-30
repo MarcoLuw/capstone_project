@@ -49,7 +49,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=miniopassword
       - AWS_REGION=us-east-1
     entrypoint: >
-      /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; tail -f /dev/null "
+      /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; 
+      /usr/bin/mc mb minio/hive;
+      tail -f /dev/null "
     networks:
       - data-services-network
 
@@ -92,12 +94,6 @@ services:
     networks:
       - data-services-network
       
-  # spark-master:
-  #   hostname: spark-master
-  #   container_name: spark-master
-  #   image: cluster-apache-spark:3.4.2
-  #   depends_on:
-  #     - minio
   spark-master:
     hostname: spark-master
     container_name: spark-master
@@ -141,11 +137,11 @@ services:
       - data-services-network
 
   history:
-    image: bitnami/spark:3.4.1
+    image: bitnami/spark:3.4.2
     ports:
       - "18080:18080"
     volumes:
-      - ./conf/history:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./spark-config/conf/history/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
     command: /bin/spark-class org.apache.spark.deploy.history.HistoryServer
 
 networks:
