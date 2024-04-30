@@ -3,4 +3,6 @@ data/
 backend/db/backups/
 storage/
 user_db/
-data_service/capstone-project
+data_service/capstone-project/
+data_service/minio-data/
+data_service/hadoop-libs/
