@@ -86,32 +86,33 @@ services:
     volumes:
       - ./hive-config:/opt/hive/conf
       - ./hadoop-libs/postgresql-42.7.2.jar:/opt/hive/lib/postgresql-42.7.2.jar
-      - ./hadoop-libs/hadoop-aws-3.3.6.jar:/opt/hive/lib/hadoop-aws-3.3.6.jar
+      - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/hive/lib/hadoop-aws-3.3.4.jar
       - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.541.jar
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - data-services-network
-      
+
   spark-master:
     hostname: spark-master
     container_name: spark-master
-    image: bitnami/spark:3.4.2
-    command: >
-      bash -c "rm -f /opt/bitnami/spark/jars/aws-java-sdk-bundle-1.12.262.jar
-      && rm -f /opt/bitnami/spark/jars/hadoop-aws-3.3.4.jar
-      && bin/spark-class org.apache.spark.deploy.master.Master"
+    image: cluster-apache-spark:3.4.2
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
-      - ./spark-apps/:/opt/bitnami/spark-apps/
-      - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-1.12.541.jar
-      - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.12.541.jar
-      - ./hadoop-libs/hadoop-aws-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.6.jar
-      - ./spark-config/conf/master/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      - ./spark-config/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
+      - ./spark-apps/:/opt/spark-apps/
+      - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
+      - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
+      - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./spark-config/conf/master/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
@@ -119,13 +120,12 @@ services:
       - data-services-network
 
   spark-worker:
-    image: bitnami/spark:3.4.2
+    image: cluster-apache-spark:3.4.2
     ports:
       - "8081-8099:8080"
       - "7078-7099:7000"
     depends_on:
       - spark-master
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - SPARK_WORKER_CORES=1
@@ -134,23 +134,27 @@ services:
       - SPARK_EXECUTOR_MEMORY=1G
       - SPARK_WORKLOAD=worker
     volumes:
-      - ./spark-apps:/opt/bitnami/spark-apps
-      - ./spark-config/conf/worker/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-      - ./spark-config/conf/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-      - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-1.12.541.jar
-      - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.12.541.jar
-      - ./hadoop-libs/hadoop-aws-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.6.jar
+      - ./spark-apps:/opt/spark-apps
+      - ./spark-config/conf/worker/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
+      - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
+      - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
+      - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
     networks:
       - data-services-network
 
-  history:
-    image: bitnami/spark:3.4.2
-    ports:
-      - "18080:18080"
+  spark-history-server:
+    container_name: spark-history
+    image: cluster-apache-spark:3.4.2
+    depends_on:
+      - spark-master
     volumes:
-      - ./spark-config/conf/history/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-    command: /bin/spark-class org.apache.spark.deploy.history.HistoryServer
-
+      - ./spark-config/conf/history/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    ports:
+      - '18080:18080'
+      
 networks:
   data-services-network:
     driver: bridge

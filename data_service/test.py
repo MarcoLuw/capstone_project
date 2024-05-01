@@ -122,3 +122,11 @@ except Exception as e:
 #   "action": "CreateSubmissionRequest",
 #   "appArgs": [ "/Users/kayden.ho.int/Documents/capstone_project/data_service/spark-test.py"]
 # }'
+
+
+# spark-submit \
+# --packages 'org.apache.hadoop:hadoop-aws:3.3.6,org.apache.hadoop:hadoop-aws:3.3.6' \
+# --exclude-packages 'com.amazonaws:aws-java-sdk-bundle' \
+# --conf 'spark.driver.extraClassPath=/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar' \
+# --conf 'spark.executor.extraClassPath=/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar' \
+# spark-test.py

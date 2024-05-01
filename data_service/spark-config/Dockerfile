@@ -1,43 +1,37 @@
 # FROM bitnami/spark:3.4.2
 FROM python:3.10-bullseye
 
+ARG SPARK_VERSION=3.4.2
+
 # Add Dependencies for PySpark
-RUN apt-get update && apt-get install -y \
-    curl \
-    vim \
-    wget \
-    software-properties-common
-RUN apt-get update -y && apt-get install -y \
-    ssh \
-    net-tools \
-    ca-certificates \
-    sudo \
-    unzip \
-    rsync \
-    openjdk-11-jdk \
-    build-essential \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      sudo \
+      curl \
+      vim \
+      unzip \
+      rsync \
+      openjdk-11-jdk \
+      build-essential \
+      software-properties-common \
+      ssh && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*do
 
-COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Optional env variables
+ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
+ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
 
-
-ENV SPARK_VERSION=3.4.2 \
-HADOOP_VERSION=3.3.6 \
-SPARK_HOME=/opt/spark \
-JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 \
-PATH=$PATH:$JAVA_HOME/bin
+RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
+WORKDIR ${SPARK_HOME}
 
 RUN wget --no-verbose -O apache-spark.tgz "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" \
 && mkdir -p /opt/spark \
 && tar -xf apache-spark.tgz -C /opt/spark --strip-components=1 \
 && rm apache-spark.tgz
 
-# Install project dependencies
-
-WORKDIR /opt/spark
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 
 ENV SPARK_MASTER_PORT=7077 \
 SPARK_MASTER_WEBUI_PORT=8080 \
@@ -47,9 +41,9 @@ SPARK_WORKER_LOG=/opt/spark/logs/spark-worker.out \
 SPARK_WORKER_WEBUI_PORT=8080 \
 SPARK_WORKER_PORT=7000 \
 SPARK_MASTER="spark://spark-master:7077" \
+SPARK_MASTER_HOST=spark-master \
 SPARK_WORKLOAD="master" \
 PYSPARK_PYTHON=python3
-
 ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
 
 EXPOSE 8080 7077 7000
