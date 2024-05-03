@@ -34,7 +34,7 @@ services:
       MINIO_CONFIG_ENV_FILE: "/etc/config.env"
     command: server --console-address ":9001" /data
     networks:
-      - data-services-network
+      - backend_backendnetwork
   mc:
     container_name: minio-client
     depends_on:
@@ -53,7 +53,7 @@ services:
       /usr/bin/mc mb minio/hive;
       tail -f /dev/null "
     networks:
-      - data-services-network
+      - backend_backendnetwork
 
   postgres:
     hostname: postgres
@@ -71,7 +71,7 @@ services:
       timeout: 10s
       retries: 10
     networks:
-      - data-services-network
+      - backend_backendnetwork
 
   hive-metastore:
     hostname: hive-metastore
@@ -83,6 +83,10 @@ services:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
       HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
     volumes:
       - ./hive-config:/opt/hive/conf
       - ./hadoop-libs/postgresql-42.7.2.jar:/opt/hive/lib/postgresql-42.7.2.jar
@@ -92,12 +96,16 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - data-services-network
+      - backend_backendnetwork
 
   spark-master:
     hostname: spark-master
     container_name: spark-master
     image: cluster-apache-spark:3.4.2
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
       interval: 5s
@@ -117,7 +125,7 @@ services:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
     networks:
-      - data-services-network
+      - backend_backendnetwork
 
   spark-worker:
     image: cluster-apache-spark:3.4.2
@@ -126,6 +134,10 @@ services:
       - "7078-7099:7000"
     depends_on:
       - spark-master
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - SPARK_WORKER_CORES=1
@@ -141,13 +153,17 @@ services:
       - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
       - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
     networks:
-      - data-services-network
+      - backend_backendnetwork
 
   spark-history-server:
     container_name: spark-history
     image: cluster-apache-spark:3.4.2
     depends_on:
       - spark-master
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
     volumes:
       - ./spark-config/conf/history/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
     environment:
@@ -156,5 +172,5 @@ services:
       - '18080:18080'
       
 networks:
-  data-services-network:
-    driver: bridge
+  backend_backendnetwork:
+    external: true
