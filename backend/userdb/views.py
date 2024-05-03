@@ -8,8 +8,7 @@ from .serializers import DatabaseConnectionSerializer, FileUploadSerializer
 from authentication.models import User
 from django.core.files.storage import default_storage
 
-
-import minio_connector.file_uploader as file_uploader
+import data_service.file_uploader as file_uploader
 import psycopg2
 import pymysql
 import jwt
@@ -18,8 +17,11 @@ import os
 from .processData import ProcessData
 # Create your views here.
 
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-# STORAGE_PATH = os.path.join(ROOT_PATH, 'storage')
+FILE_PATH = os.path.dirname(os.path.abspath(__file__))
+# ROOT PATH is empty because the file is in the root directory already 
+# Reference to the backend/dockerfile
+# STORAGE_PATH = ROOT_PATH + '/storage'
+ROOT_PATH = ''
 
 # Get the user from the token
 def getUser(id: int):
@@ -106,6 +108,7 @@ class ImportDataFromFileView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         file = serializer.validated_data['file']
+        print(f'File name: {file.name}')
         filepath = self.saveFile(file)
 
         """ Processing area for the file """    
@@ -123,10 +126,16 @@ class ImportDataFromFileView(APIView):
         return Response({"message": "File uploaded successfully.", "data": json_data}, status=status.HTTP_200_OK)
 
     def saveFile(self, file):
-        if not os.path.exists(ROOT_PATH + '/storage'):
-            os.makedirs(ROOT_PATH + '/storage', exist_ok=True)
-        with open(ROOT_PATH + '/storage/' + file.name, 'wb+') as destination:
+        storage_path = os.path.normpath(os.path.join(ROOT_PATH, 'storage'))
+        print(f'Storage path: {storage_path}')
+        print(f'Check file: {os.path.exists(storage_path)}')
+        if not os.path.exists(storage_path):
+            print(f'Create storage path: {storage_path}')
+            os.makedirs(storage_path, exist_ok=True)
+        filepath = os.path.normpath(os.path.join(storage_path, file.name))
+        with open(filepath, 'wb+') as destination:
+            destination.write(b'')
             for chunk in file.chunks():
                 destination.write(chunk)
-        return ROOT_PATH + '/storage/' + file.name
+        return filepath
         

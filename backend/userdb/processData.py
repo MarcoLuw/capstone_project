@@ -4,8 +4,9 @@ import json
 # import pandas as pd
 # import numpy as np
 
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-STORAGE_PATH = os.path.join(ROOT_PATH, 'storage')
+# ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+# STORAGE_PATH = os.path.join(ROOT_PATH, 'storage')
+STORAGE_PATH = 'storage'
 
 class ProcessData:
     def __init__(self, file):
