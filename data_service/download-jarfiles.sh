@@ -1,3 +1,4 @@
+mkdir hadoop-libs
 cd hadoop-libs
 echo ${PWD}
 wget --no-verbose https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.2.0/mariadb-java-client-3.2.0.jar

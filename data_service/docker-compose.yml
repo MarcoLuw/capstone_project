@@ -51,6 +51,8 @@ services:
     entrypoint: >
       /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; 
       /usr/bin/mc mb minio/hive;
+      /usr/bin/mc md minio/logging/spark-events;
+      /usr/bin/mc md minio/data_services;
       tail -f /dev/null "
     networks:
       - data-services-network
@@ -113,6 +115,7 @@ services:
       - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
       - ./spark-config/conf/master/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
       - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
+      - ./hadoop-libs/delta-core_2.13-2.4.0.jar:/opt/spark/jars/delta-core_2.13-2.4.0.jar
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
@@ -140,6 +143,7 @@ services:
       - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
       - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
       - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./hadoop-libs/delta-core_2.13-2.4.0.jar:/opt/spark/jars/delta-core_2.13-2.4.0.jar
     networks:
       - data-services-network
 
@@ -154,6 +158,22 @@ services:
       - SPARK_NO_DAEMONIZE=true
     ports:
       - '18080:18080'
+    networks:
+      - data-services-network
+
+  # kyuubi:
+  #   hostname: kyuubi
+  #   container_name: kyuubi
+  #   image: apache/kyuubi:1.8.0-spark
+  #   volumes:
+  #     - ./kyuubi-config/kyuubi-defaults.conf:/opt/kyuubi/conf/kyuubi-defaults.conf
+  #   ports:
+  #     - "10009:10009"
+  #     - "10099:10099"
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+      # - data-services-network
       
 networks:
   data-services-network:
