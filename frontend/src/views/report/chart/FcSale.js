@@ -6,7 +6,7 @@ import AmCharts from '@amcharts/amcharts3-react';
 
 const ForecastSale = (props) => {
     useEffect(() => {
-        AmCharts.makeChart('line-chart', {
+        AmCharts.makeChart(props.id, {
             type: 'serial',
             theme: 'light',
             dataProvider: [
@@ -70,9 +70,9 @@ const ForecastSale = (props) => {
                 enabled: true
             }
         });
-    }, [props.height]); // Add props.height as a dependency to re-render chart if height changes
+    }, [props.id, props.height]); 
 
-    return <div id="line-chart" style={{ width: '100%', height: props.height }} />;
+    return <div id={props.id} style={{ width: '100%', height: props.height }} />;
 };
 
 export default ForecastSale;

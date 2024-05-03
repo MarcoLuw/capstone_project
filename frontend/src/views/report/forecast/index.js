@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button} from 'react-bootstrap';
 import  MainCard from '../../../components/Card/MainCard';
 
-import ForecastSale from './chart/FcSale';
-import TrendingProduct from './chart/TrendingProduct';
+import ForecastSale from '../chart/FcSale';
+import TrendingProduct from '../chart/TrendingProduct';
 
 function TimeApply() {
     const [period, setPeriod] = useState('Week');
@@ -77,7 +77,13 @@ const Forecast = () => {
             <TimeApply />
                 <Col md={12}>
                     <MainCard title = "Total Sales (VND)" isOption>
-                        <ForecastSale height="500px" />
+                        <ForecastSale id="chart1" height="500px" />
+                    </MainCard>
+                </Col>
+
+                <Col md={12}>
+                    <MainCard title = "Total Sales 2 (VND)" isOption>
+                        <ForecastSale id="chart2" height="500px" />
                     </MainCard>
                 </Col>
 

@@ -4,9 +4,9 @@ import 'amcharts3/amcharts/serial';
 import 'amcharts3/amcharts/themes/light';
 import AmCharts from '@amcharts/amcharts3-react';
 
-const TimeSeries = ({ data, height }) => {
+const LineColumnChart = ({ id, data, height }) => {
     useEffect(() => {
-        AmCharts.makeChart('bar-chart', {
+        AmCharts.makeChart(id, {
             type: 'serial',
             theme: 'light',
             marginTop: 10,
@@ -47,6 +47,7 @@ const TimeSeries = ({ data, height }) => {
                     title: 'Orders',
                     valueField: 'Orders',
                     columnWidth: 0.3,
+                    legendValueText: ' ',
                     balloonText: "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>"
                 },
                 {
@@ -60,9 +61,9 @@ const TimeSeries = ({ data, height }) => {
                     hideBulletsCount: 50,
                     lineThickness: 2,
                     type: 'line',
-                    title: 'Total Sales (VND)',
+                    title: 'Total Sales (VNĐ)',
                     valueField: 'TotalSales',
-                    legendValueText: '[[value]]',
+                    legendValueText: ' ',
                     balloonText: "[[title]]<br /><b style='font-size: 130%'>[[value]]M</b>"
                 }
             ],
@@ -91,9 +92,9 @@ const TimeSeries = ({ data, height }) => {
             },
             dataProvider: data
         });
-    }, [data]);
+    }, [id, data, height]);
 
-    return <div id="bar-chart" className="bar-chart" style={{ width: '100%', height: height }} />;
+    return <div id={id} style={{ width: '100%', height: height }} />;
 };
 
-export default TimeSeries;
+export default LineColumnChart;

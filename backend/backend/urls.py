@@ -25,4 +25,5 @@ urlpatterns = [
     # path('detail_customer/all', views.DetailCustomerApi), # This one will be deleted later
     path('authen/', include('authentication.urls')),
     path('userdb/', include('userdb.urls')),
+    path('data_analysis/', include('data_analysis.urls')),
 ]
