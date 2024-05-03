@@ -8,7 +8,7 @@ run:
 	make down && docker compose up -d
 
 run-generate:
-	make down && sh download-jarfiles.sh && docker compose up -d
+	make down && sh download-jarfiles.sh
 
 run-scaled:
 	make down && docker compose up -d --scale spark-worker=3
