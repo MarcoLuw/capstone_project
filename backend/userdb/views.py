@@ -1,18 +1,52 @@
+from rest_framework import status
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 # from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import DatabaseConnectionSerializer, FileUploadSerializer
-import pymysql
+from authentication.models import User
+from django.core.files.storage import default_storage
+
+import data_service.file_uploader as file_uploader
 import psycopg2
+import pymysql
+import jwt
 import os
 
 from .processData import ProcessData
 # Create your views here.
 
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-# STORAGE_PATH = os.path.join(ROOT_PATH, 'storage')
+FILE_PATH = os.path.dirname(os.path.abspath(__file__))
+# ROOT PATH is empty because the file is in the root directory already 
+# Reference to the backend/dockerfile
+# STORAGE_PATH = ROOT_PATH + '/storage'
+ROOT_PATH = ''
+
+# Get the user from the token
+def getUser(id: int):
+    user = User.objects.filter(id=id).first()
+    return user
+
+# Check if the user is authenticated
+def isAuthenticate(request):
+    token = request.COOKIES.get('jwt')
+
+    # Check if the token exists
+    if not token:
+        raise AuthenticationFailed('Token not existed - Unauthenticated!')
+    
+    try:
+        # Decode the token
+        payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Incompatible token - Unauthenticated!')
+    
+    # Get the user from the payload
+    user = getUser(payload['id'])
+    if not user:
+        raise AuthenticationFailed('User not found!')
+    return True, payload
 
 """ Import data from a database """
 class ImportDataView(APIView):
@@ -62,28 +96,46 @@ class ImportDataView(APIView):
 """ Import data from a file """
 class ImportDataFromFileView(APIView):
     # parser_classes = (MultiPartParser, FormParser)
-
     def post(self, request, *args, **kwargs):
         # if 'file' not in request.FILES:
         #     return Response({"Error": "No file was uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+        isAuth, payload = isAuthenticate(request)
+        if not isAuth:
+            return Response({"Error": "Unauthenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
         serializer = FileUploadSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         file = serializer.validated_data['file']
-        self.saveFile(file)
+        print(f'File name: {file.name}')
+        filepath = self.saveFile(file)
 
         """ Processing area for the file """    
+        # Upload data to frontend for preview
         dataProcessor = ProcessData(file)
-        json_data = dataProcessor.createFile()
+        json_data = dataProcessor.getSampleDataUI()
 
+        # Upload the file to MinIO
+        user = getUser(payload['id'])
+        access_key, secret_key = file_uploader.generate_dynamic_credentials(user.username)
+
+        upload_result = file_uploader.uploadFile(filepath, user.username)
+        if not upload_result:
+            return Response({"Error": "Could not upload the file."}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "File uploaded successfully.", "data": json_data}, status=status.HTTP_200_OK)
 
     def saveFile(self, file):
-        if not os.path.exists(ROOT_PATH + '/storage'):
-            os.makedirs(ROOT_PATH + '/storage', exist_ok=True)
-        with open(ROOT_PATH + '/storage/' + file.name, 'wb+') as destination:
+        storage_path = os.path.normpath(os.path.join(ROOT_PATH, 'storage'))
+        print(f'Storage path: {storage_path}')
+        print(f'Check file: {os.path.exists(storage_path)}')
+        if not os.path.exists(storage_path):
+            print(f'Create storage path: {storage_path}')
+            os.makedirs(storage_path, exist_ok=True)
+        filepath = os.path.normpath(os.path.join(storage_path, file.name))
+        with open(filepath, 'wb+') as destination:
+            destination.write(b'')
             for chunk in file.chunks():
                 destination.write(chunk)
-        return ROOT_PATH + '/' + file.name
+        return filepath
         

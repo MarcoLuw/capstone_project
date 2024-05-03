@@ -1,0 +1,48 @@
+Schema of fact_ecommerce_sales
+
+('date_key', 'int', 'YES')
+('time_key', 'int', 'YES')
+('channel_key', 'int', 'YES')
+('customer_key', 'int', 'YES')
+('product_key', 'int', 'YES')
+('store_key', 'int', 'YES')
+('promotion_key', 'int', 'YES')
+('order_quantity', 'int', 'YES')
+('unit_price', 'float', 'YES')
+('unit_cost', 'float', 'YES')
+('unit_discount', 'float', 'YES')
+('sales_amount', 'decimal', 'YES')
+('order_number', 'nvarchar', 'YES')
+('order_line_number', 'int', 'YES')
+('order_date', 'date', 'YES')
+('order_time', 'time', 'YES')
+('ship_date', 'date', 'YES')
+('payment_date', 'date', 'YES')
+-----------------------------------------------------------
+
+Schema of dim_product
+
+('product_key', 'int', 'NO')
+('product_name', 'nvarchar', 'YES')
+('product_category', 'nvarchar', 'YES')
+('product_subcategory', 'nvarchar', 'YES')
+('uom', 'nvarchar', 'YES')
+('price', 'float', 'YES')
+('cost', 'float', 'YES')
+('country ', 'nvarchar', 'YES')
+('brand', 'nvarchar', 'YES')
+('suplier_name', 'nvarchar', 'YES')
+('weight', 'float', 'YES')
+('uom_weight', 'nvarchar', 'YES')
+('volume', 'nvarchar', 'YES')
+('uom_volumn', 'nvarchar', 'YES')
+('length', 'float', 'YES')
+('width', 'float', 'YES')
+('heigth', 'float', 'YES')
+('uom_size', 'nvarchar', 'YES')
+('link', 'nvarchar', 'YES')
+('product_category_image', 'nvarchar', 'YES')
+('description', 'ntext', 'YES')
+
+------------------------------------------------------
+

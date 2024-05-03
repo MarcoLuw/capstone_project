@@ -7,8 +7,11 @@ WORKDIR /app/backend
 
 COPY requirements.txt ./
 
+# Update apk
+RUN apk update
+
 # Build psycopg2-binary from source -- add required required dependencies
-RUN apk add --virtual .build-deps --no-cache postgresql-dev gcc python3-dev musl-dev && \
+RUN apk add --virtual .build-deps --no-cache postgresql-dev gcc g++ python3-dev musl-dev unixodbc-dev && \
         pip install --no-cache-dir -r requirements.txt && \
         apk --purge del .build-deps
 

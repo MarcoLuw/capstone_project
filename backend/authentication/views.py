@@ -43,12 +43,14 @@ class LoginView(APIView):
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
         response = Response()
-        
+
         # Set the cookie with the token
         # httponly : the cookie cannot be accessed by javascript
         response.set_cookie(key='jwt', value=token, httponly=True)
+
         response.data = {
-            'jwt': token
+            'jwt': token,
+            'message': 'success'
         }
 
         # Return the token
@@ -62,18 +64,21 @@ class UserView(APIView):
 
         # Check if the token exists
         if not token:
-            raise AuthenticationFailed('Unauthenticated!')
+            raise AuthenticationFailed('Token not existed! Unauthenticated!')
         
         try:
             # Decode the token
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+            raise AuthenticationFailed('Incompatible token! Unauthenticated!')
         
         # Get the user from the payload
         user = User.objects.filter(id=payload['id']).first()
+        if not user:
+            raise AuthenticationFailed('User not found!')
+        
         serializer = UserSerializer(user)
-
+        print(type(user))
         return Response(serializer.data)
 
 # Logout
