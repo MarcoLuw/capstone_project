@@ -2,16 +2,10 @@ from delta.tables import DeltaTable
 from pyspark.sql import SparkSession
 
 def main():
-    source_bucket = "test-user"
+    source_bucket = "hanh"
 
     spark = SparkSession.builder \
         .appName("CSV File to Delta Lake Table") \
-        .config("spark.jars.packages", "io.delta:delta-core_2.13:2.4.0,org.apache.hadoop:hadoop-aws:3.3.6") \
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-        .config("spark.jars.excludes", "com.amazonaws:aws-java-sdk-bundle") \
-        .config("spark.driver.extraClassPath", "/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar") \
-        .config("spark.executor.extraClassPath", "/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar") \
         .config("spark.sql.warehouse.dir", f"s3a://{source_bucket}/warehouse") \
         .config("hive.metastore.warehouse.dir", f"s3a://{source_bucket}/warehouse") \
         .enableHiveSupport() \

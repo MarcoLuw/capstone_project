@@ -117,8 +117,8 @@ class GetCardView(APIView):
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
         # Get the field and aggregation from the request
-        field = request.data.get('field', None)
-        aggre = request.data.get('agg', None)
+        field = request.GET.get('field', None)
+        aggre = request.GET.get('agg', None)
 
         # print(f'Field: {field}, Aggregation: {aggre}')
 
@@ -170,9 +170,9 @@ class GetBCPView(APIView):
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
         # Get the field, valuefield and aggregation from the request
-        categoryfield = request.data.get('categoryfield', None)
-        valuefield = request.data.get('valuefield', None)
-        agg = request.data.get('agg', None)
+        categoryfield = request.GET.get('categoryfield', None)
+        valuefield = request.GET.get('valuefield', None)
+        agg = request.GET.get('agg', None)
 
         # Initialize connection to db
         conn = connectToDB()
@@ -200,6 +200,9 @@ class GetBCPView(APIView):
     
     def generateAggregationQueryBCP(self, categoryfield: str, valuefield: str, agg: str):
         if categoryfield not in NUMERIC_FIELDS and valuefield not in NUMERIC_FIELDS:
+            return 'Invalid'
+
+        if valuefield in NUMERIC_FIELDS and agg not in AGGREGATION_OPTIONS:
             return 'Invalid'
         
         if agg == 'SUM':

@@ -51,8 +51,8 @@ services:
     entrypoint: >
       /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; 
       /usr/bin/mc mb minio/hive;
-      /usr/bin/mc md minio/logging/spark-events;
-      /usr/bin/mc md minio/data_services;
+      /usr/bin/mc mb minio/logging/spark-events;
+      /usr/bin/mc mb minio/data_services;
       tail -f /dev/null "
     networks:
       - backend_backendnetwork
@@ -175,7 +175,7 @@ services:
     ports:
       - '18080:18080'
     networks:
-      - data-services-network
+      - backend_backendnetwork
 
   # kyuubi:
   #   hostname: kyuubi

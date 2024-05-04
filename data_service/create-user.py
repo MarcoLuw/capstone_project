@@ -55,7 +55,11 @@ def set_user_policy(username):
     policy_json = json.dumps(policy_document)
 
     # Save the policy to a temporary JSON file on the host
-    host_policy_path = '/tmp/policy.json'
+    host_policy_path = 'tmp'
+    if not os.path.exists(host_policy_path):
+        os.makedirs(host_policy_path)
+        host_policy_path = os.path.join(host_policy_path, f"{policy_name}.json")
+
     with open(host_policy_path, 'w') as f:
         f.write(policy_json)
 
