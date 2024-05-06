@@ -1,15 +1,16 @@
 from delta.tables import DeltaTable
 from pyspark.sql import SparkSession
+from utils.common import get_spark_session
 
 def main():
     source_bucket = "test-user"
 
-    spark = SparkSession.builder \
-        .appName("CSV File to Delta Lake Table") \
-        .config("spark.sql.warehouse.dir", f"s3a://{source_bucket}/warehouse") \
-        .config("hive.metastore.warehouse.dir", f"s3a://{source_bucket}/warehouse") \
-        .enableHiveSupport() \
-        .getOrCreate()
+    spark = get_spark_session(
+        "CSV to delta lake",
+        "http://minio:9000",
+        source_bucket,
+        "password"
+    )
 
     # Create schema if not exists
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS `{source_bucket.replace('-', '_')}`")

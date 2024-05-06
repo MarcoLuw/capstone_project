@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import json
+import io
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -108,5 +109,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         username = sys.argv[1]
         create_user_and_bucket(username)
+        minio_client.put_object(username, "logging/spark-events" + "/", io.BytesIO(b''), 0)
     else:
         print("Username not provided.")
