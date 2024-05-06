@@ -6,7 +6,7 @@
     </property>
     <property>
         <name>fs.defaultFS</name>
-        <value>s3a://data_services</value>
+        <value>s3a://hive</value>
     </property>
     <property>
         <name>fs.s3a.impl</name>
