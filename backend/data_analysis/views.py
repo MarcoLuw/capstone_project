@@ -201,6 +201,9 @@ class GetBCPView(APIView):
     def generateAggregationQueryBCP(self, categoryfield: str, valuefield: str, agg: str):
         if categoryfield not in NUMERIC_FIELDS and valuefield not in NUMERIC_FIELDS:
             return 'Invalid'
+
+        if valuefield in NUMERIC_FIELDS and agg not in AGGREGATION_OPTIONS:
+            return 'Invalid'
         
         if agg == 'SUM':
             query = f'SELECT {categoryfield}, SUM({valuefield}) as sum_value FROM fact_ecommerce_sales GROUP BY {categoryfield} ORDER BY sum_value DESC LIMIT 10;'
