@@ -1,0 +1,67 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": [
+				"s3:*"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::${aws:username}"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:*"
+			],
+			"Resource": "arn:aws:s3:::${aws:username}/*"
+		},
+		{
+			"Action": [
+				"s3:ListBucket"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::hive"
+			],
+			"Condition": {
+				"StringEquals": {
+					"s3:prefix": [
+						"",
+						"warehouse/${aws:username}/"
+					],
+					"s3:delimiter": [
+						"/"
+					]
+				}
+			}
+		},
+		{
+			"Action": [
+				"s3:ListBucket"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::hive"
+			],
+			"Condition": {
+				"StringLike": {
+					"s3:prefix": [
+						"warehouse/${aws:username}-warehouse/*"
+					]
+				}
+			}
+		},
+		{
+			"Sid": "AllowUseeOn-Warehouse",
+			"Action": [
+				"s3:*"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::hive/warehouse/${aws:username}-warehouse/*"
+			]
+		}
+	]
+}

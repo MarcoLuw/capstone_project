@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession
 from utils.common import get_spark_session
 
 def main():
-    source_bucket = "test-user"
+    source_bucket = "kayden"
 
     spark = get_spark_session(
         "CSV to delta lake",
@@ -19,7 +19,7 @@ def main():
     spark.sql("CREATE DATABASE IF NOT EXISTS warehouse")
     spark.sql("USE warehouse")
 
-    input_path = f"s3a://{source_bucket}/raw/data_train.csv"
+    
     delta_path = f"s3a://{source_bucket}/delta/tables/"
 
     df = spark.read.csv(input_path, header=True, inferSchema=True)

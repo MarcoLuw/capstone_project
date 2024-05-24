@@ -8,3 +8,4 @@ wget --no-verbose https://repo1.maven.org/maven2/io/delta/delta-core_2.13/2.4.0/
 wget --no-verbose https://repo1.maven.org/maven2/io/delta/delta-storage/2.4.0/delta-storage-2.4.0.jar
 wget --no-verbose https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
 wget --no-verbose https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.2/postgresql-42.7.2.jar
+wget --no-verbose https://repo1.maven.org/maven2/com/crealytics/spark-excel_2.12/3.4.2_0.20.3/spark-excel_2.12-3.4.2_0.20.3.jar

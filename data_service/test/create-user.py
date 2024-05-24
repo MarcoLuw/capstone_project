@@ -37,43 +37,8 @@ def run_command(command):
     return result.stdout.strip()
 
 def set_user_policy(username):
-    policy_name = f"{username}_policy"
-    policy_document = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": ["s3:*"],
-                "Resource": f"arn:aws:s3:::{username}"
-            },
-            {
-                "Effect": "Allow",
-                "Action": ["s3:*"],
-                "Resource": f"arn:aws:s3:::{username}/*"
-            }
-        ]
-    }
-    policy_json = json.dumps(policy_document)
-
-    # Save the policy to a temporary JSON file on the host
-    host_policy_path = '/tmp/policy.json'
-    with open(host_policy_path, 'w') as f:
-        f.write(policy_json)
-
-    # Copy the policy JSON file to the Docker container
-    container_policy_path = '/tmp/policy.json'  # Change as needed based on container path preferences
-    copy_command = f"docker cp {host_policy_path} minio-client:{container_policy_path}"
-    if run_command(copy_command) is None:
-        print("Failed to copy policy file to container")
-        return
-
-    # Use the mc command to create the policy in MinIO inside the Docker container
-    create_policy_cmd = f"docker exec minio-client mc admin policy create {MINIO_ALIAS} {policy_name} {container_policy_path}"
-    if run_command(create_policy_cmd) is None:
-        print(f"Failed to create policy '{policy_name}'")
-        return
-
     # Apply the policy to the user
+    policy_name = "user_policy"
     link_policy_cmd = f"docker exec minio-client mc admin policy attach {MINIO_ALIAS} {policy_name} --user {username}"
     if run_command(link_policy_cmd) is None:
         print(f"Failed to attach policy '{policy_name}' to user '{username}'")

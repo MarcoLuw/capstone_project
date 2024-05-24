@@ -23,7 +23,7 @@ ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
 ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
 
 RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
-WORKDIR ${SPARK_HOME}
+WORKDIR ${SPARK_HOME}xww
 
 RUN wget --no-verbose -O apache-spark.tgz "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" \
 && mkdir -p /opt/spark \
@@ -43,8 +43,8 @@ SPARK_WORKER_PORT=7000 \
 SPARK_MASTER="spark://spark-master:7077" \
 SPARK_MASTER_HOST=spark-master \
 SPARK_WORKLOAD="master" \
-PYSPARK_PYTHON=python3
-ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
+PYSPARK_PYTHON=python3 \
+PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
 
 EXPOSE 8080 7077 7000
 

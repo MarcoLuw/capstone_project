@@ -16,10 +16,10 @@
         <name>fs.defaultFS</name>
         <value>s3a://hive</value>
     </property>
-    <!-- <property>
+    <property>
         <name>metastore.warehouse.dir</name>
         <value>s3a://hive/warehouse/</value>
-    </property> -->
+    </property>
     <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
         <value>org.postgresql.Driver</value>
