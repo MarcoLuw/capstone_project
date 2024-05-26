@@ -8,9 +8,9 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - data-1:/data-1
-      - data-2:/data-2
-      - data-3:/data-3
+      - ./minio-data/data-1:/data-1
+      - ./minio-data/data-2:/data-2
+      - ./minio-data/data-3:/data-3
     healthcheck:
       test:
         [
@@ -36,6 +36,7 @@ services:
     networks:
       - backend_backendnetwork
   mc:
+    container_name: minio-client
     depends_on:
       - minio
     image: minio/mc
@@ -47,10 +48,14 @@ services:
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=miniopassword
       - AWS_REGION=us-east-1
+    entrypoint: >
+      /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; 
+      /usr/bin/mc mb minio/hive;
+      /usr/bin/mc mb minio/logging/spark-events;
+      /usr/bin/mc mb minio/data_services;
+      tail -f /dev/null "
     networks:
       - backend_backendnetwork
-    entrypoint: >
-      /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; tail -f /dev/null "
 
 networks:
   backend_backendnetwork:

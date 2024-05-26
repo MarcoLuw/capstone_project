@@ -26,4 +26,5 @@ urlpatterns = [
     path('authen/', include('authentication.urls')),
     path('userdb/', include('userdb.urls')),
     path('data_analysis/', include('data_analysis.urls')),
+    path('data_prediction/', include('data_prediction.urls')),
 ]

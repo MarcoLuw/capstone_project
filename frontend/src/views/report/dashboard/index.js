@@ -1,6 +1,7 @@
 import React, { useState, useEffect} from 'react';
 import {Modal, Row, Col, Form, Card, Button, Dropdown} from 'react-bootstrap';
 import  MainCard from '../../../components/Card/MainCard';
+import axios from 'axios';
 
 import LineColumnChart from '../chart/Linecolumnchart';
 import Barchart from '../chart/Barchart';
@@ -17,22 +18,24 @@ function formatNumber(number) {
 }
 
 
-// Import hàm từ function.js
-const {get_column, get_data_bcp, get_data_card, get_data_table, get_info_filter,filter_field_data} = require('./function')
-
 
 const DashDefault = () => {
 
-    const [columns, setColumns] = useState({});
+    const [columns, setColumns] = useState([]);
     const [selectedField, setSelectedField] = useState('');
+    const [fieldInfo, setFieldInfo] = useState('');
     const [filterField, setFilterField] = useState('');
     
-    const [updateVisualizations, setUpdateVisualizations] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const [ShowAddVisual, setShowAddVisual] = useState(false); 
     const [ShowAddFilter, setShowAddFilter] = useState(false); 
 
     const [filterList, setFilterList] = useState([]);
+
+    const [matchingResult, setMatchingResult] = useState({});
+
+    const [visualList, setVisualList] = useState([]);
 
     const [newVis, setNewVis] = useState({
     width: '',
@@ -45,16 +48,137 @@ const DashDefault = () => {
     });
 
 
-    const [startTime, setStartTime] = useState('2023-09-01');
-    const [endTime, setEndTime] = useState('2023-11-30');
+    const [startTime, setStartTime] = useState('2022-10-01');
+    const [endTime, setEndTime] = useState('2022-11-30');
 
-    const handleStartTimeChange = (e) => setStartTime(e.target.value);
-    const handleEndTimeChange = (e) => setEndTime(e.target.value);
+    const handleStartTimeChange = (e) => {
+        setStartTime(e.target.value);
+        setLoading(true);
+    };
+    
+    const handleEndTimeChange = (e) => {
+        setEndTime(e.target.value);
+        setLoading(true);
+    };
+    
 
+
+
+    //API
+
+    const convertFiltersToParams = (filterList, startTime, endTime, orderDateField) => {
+        const params = {};
+        let filterIndex = 1;
+    
+        // Add the date filter directly
+        params[`filter_field${filterIndex}`] = orderDateField;
+        params[`filter_field${filterIndex}_start`] = startTime;
+        params[`filter_field${filterIndex}_end`] = endTime;
+        filterIndex++;
+    
+        for (const filter of filterList) {
+            const key = filter.label;
+            const value = filter.values;
+    
+            params[`filter_field${filterIndex}`] = key;
+    
+            if (filter.type === 'range') {
+                params[`filter_field${filterIndex}_start`] = value[0];
+                params[`filter_field${filterIndex}_end`] = value[1];
+            } else {
+                params[`filter_value${filterIndex}`] = value.join(',');
+            }
+    
+            filterIndex++;
+        }
+    
+        return params;
+    };
+    
+    
+
+    const get_data_card = async (field, agg, filters) => {
+        try {
+            const params = { field, agg, ...filters};
+            const response = await axios.get('http://localhost:8000/data_analysis/api/getDataCard', {
+                withCredentials: true,
+                params
+            });
+            return response.data.data;
+        } catch (error) {
+            console.error('Failed to fetch data from API:', error);
+            return [];  // Trả về mảng rỗng nếu có lỗi
+        }
+    };
+    
+    const get_data_bcp = async (categoryfield, valuefield, agg, sort_category, sort_value, top, filters) => {
+        try {
+            const params = { categoryfield, valuefield, agg, sort_category, sort_value, top, ...filters};
+            const response = await axios.get('http://localhost:8000/data_analysis/api/getDataBCP', {
+                withCredentials: true,
+                params
+            });
+            return response.data.data;
+        } catch (error) {
+            console.error('Failed to fetch data from API:', error);
+            return [];  // Trả về mảng rỗng nếu có lỗi
+        }
+    };
+    
+    const get_data_table = async (list_field, filters) => {
+        try {
+            const params = { list_field, ...filters}; 
+            const response = await axios.get('http://localhost:8000/data_analysis/api/getDataTable', {
+                withCredentials: true,
+                params
+            });
+            return response.data.data;
+        } catch (error) {
+            console.error('Failed to fetch table data from API:', error);
+            return [];  // Trả về mảng rỗng nếu có lỗi
+        }
+    };
+    
+    
+
+    // API call to get all columns
+    const get_all_columns = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/data_analysis/api/getAllColumns', {
+                withCredentials: true
+            });
+            const matchingResult = response.data.matching_result;
+            setMatchingResult(matchingResult);
+
+            // Extract keys from matching_result and set columns state
+            const columnsList = Object.keys(matchingResult);
+            setColumns(columnsList);
+
+        } catch (error) {
+            console.error('Failed to fetch columns from API:', error);
+            setColumns([]);
+        }
+    };
 
     useEffect(() => {
-        setColumns(get_column());
+        get_all_columns();
     }, []);
+
+    const get_info_field = async (field) => {
+        try {
+            const response = await axios.get('http://localhost:8000/data_analysis/api/getInfoField', {
+                withCredentials: true,
+                params: { field }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Failed to fetch field info from API:', error);
+            return null;  // Trả về null nếu có lỗi
+        }
+    };
+    
+
+
 
     //FILTER
 
@@ -119,24 +243,41 @@ const DashDefault = () => {
         ));
     };
 
-    const handleAddFilter = () => {
+    const handleAddFilter = async () => {
         const newFilterId = `filter-${new Date().getTime()}`;
-        const options = get_info_filter(filterField); // This should return the array of options for the filter
-        // Check the type of the filterField in the columns object
-        const filterType = columns[filterField] === 'text' ? 'includes' : 'range';
+    
+        const fieldInfo = await get_info_field(filterField); // Gọi API để lấy thông tin về trường
+        if (!fieldInfo) {
+            console.error('Failed to fetch field info.');
+            return;
+        }
+    
+        // Phân tích phản hồi từ API để xác định loại và giá trị của bộ lọc
+        const filterType = fieldInfo.type === 'varchar' ? 'includes' : 'range';
+        let options = [];
+        let values = [];
+    
+        if (filterType === 'includes') {
+            options = fieldInfo.values;
+            values = options.map(option => option.value || option);
+        } else if (filterType === 'range') {
+            options = [fieldInfo.values.min, fieldInfo.values.max];
+            values = [options[0], options[1]];
+        }
+    
         const newFilter = {
             id: newFilterId,
             label: filterField,
             type: filterType,  // Set type based on the field type
-            values: filterType === 'includes' ? 
-            options.map(option => option.value || option) : [options[0], options[1]],
-            options: options 
+            values: values,
+            options: options
         };
     
-        setFilterList([...filterList, newFilter]);
+        setFilterList(prevFilterList => [...prevFilterList, newFilter]);
         setShowAddFilter(false); // Close the modal or dropdown adding this new filter
+        setLoading(true); // Trigger data reload
     };
-
+    
     const handleRangeChange = (filterId, mark, value) => {
         const numericValue = Number(value);
     
@@ -157,13 +298,12 @@ const DashDefault = () => {
                 }
                 return filter;
             }));
+            setLoading(true); // Trigger data reload
         } else {
             console.error(`Invalid numeric value for filter ${filterId}:`, value);
         }
     };
     
-    
-        
     const handleSelectFilter = (filterId, optionValue) => {
         setFilterList(prevFilters => prevFilters.map(filter => {
             if (filter.id === filterId) {
@@ -178,9 +318,9 @@ const DashDefault = () => {
             }
             return filter;
         }));
+        setLoading(true); // Trigger data reload
     };
     
-
     const handleToggleAllFilters = (filterId) => {
         setFilterList(prevFilters => prevFilters.map(filter => {
             if (filter.id === filterId) {
@@ -192,78 +332,56 @@ const DashDefault = () => {
             }
             return filter;
         }));
+        setLoading(true); // Trigger data reload
     };
-    
-
-    useEffect(() => {
-        // Create an object to hold filters for all fields based on current filterList settings
-        let newFilters = filterList.reduce((acc, filter) => {
-
-            if (filter.type === 'range') {
-
-                acc[filter.label] = {
-                    type: filter.type,
-                    values: {
-                        start: filter.values[0],
-                        end: filter.values[1]
-                    }
-                };
-
-            } else {
-   
-                acc[filter.label] = {
-                    type: filter.type,
-                    values: filter.values
-                };
-            }
-
-            return acc;
-        }, {});
-   
-        // Add the order_date filter
-        newFilters["order_date"] = {
-            type: "range",
-            values: { start: startTime, end: endTime }
-        };
-   
-        filter_field_data(newFilters);
-        setUpdateVisualizations(true);
-
-    }, [filterList, columns, startTime, endTime]);
 
    //VISUALIZATION
    
-    const [visualList, setVisualList] = useState([
-        { width: 4, height: '5px', title: 'Total Sales', type: 'Card', id: 'totalsale', data: {}, 
-        fields: {"field":"total_sale", "agg":"SUM"}},
+    // Tạo hàm ánh xạ field
+    const createFieldMap = (matchingResult) => {
+        const fieldMap = {};
+        Object.entries(matchingResult).forEach(([userField, { field }]) => {
+            fieldMap[field] = userField;
+        });
+        return fieldMap;
+    };
 
-        { width: 4, height: '5px', title: 'Total Orders', type: 'Card', id: 'totalorder', data: {}, 
-        fields: {"field":"order_count", "agg":"SUM"}},
+    useEffect(() => {
+        if (Object.keys(matchingResult).length > 0) {
+            const fieldMap = createFieldMap(matchingResult);
 
-        { width: 4, height: '5px', title: 'Total Quantity', type: 'Card', id: 'totalquantity', data: {}, 
-        fields: {"field":"order_quantity", "agg":"SUM"}},
+            setVisualList([
+                { width: 4, height: '5px', title: 'Total Sales', type: 'Card', id: 'totalsale', data: {}, fields: { field: fieldMap['total_sale'] || '', agg: 'SUM' } },
+                { width: 4, height: '5px', title: 'Total Orders', type: 'Card', id: 'totalorder', data: {}, fields: { field: fieldMap['order_number'] || '', agg: 'DISTINCT' } },
+                { width: 4, height: '5px', title: 'Total Quantity', type: 'Card', id: 'totalquantity', data: {}, fields: { field: fieldMap['order_quantity'] || '', agg: 'SUM' } },
+                { width: 12, height: '360px', title: 'Time Series', type: 'Linechart', id: 'column-chart', data: {}, fields: { categoryfield: fieldMap['order_date'] || '', valuefield: fieldMap['total_sale'] || '', agg: 'SUM', sort_category: 'ASC', top: 120 } },
+                { width: 6, height: '360px', title: 'Top Product', type: 'Barchart', id: 'bar-chart', data: {}, fields: { categoryfield: fieldMap['product_name'] || '', valuefield: fieldMap['total_sale'] || '', agg: 'SUM', sort_value: 'DESC', top: 10 } },
+                { width: 6, height: '360px', title: 'Segment of Category', type: 'Piechart', id: 'pie-chart', data: {}, fields: { categoryfield: fieldMap['product_category'] || '', valuefield: fieldMap['total_sale'] || '', agg: 'SUM', sort_value: 'DESC' } },
+                { width: 12, height: '360px', title: 'Product Detail', type: 'Table', id: 'table', data: {}, fields: [fieldMap['order_date'] || '', fieldMap['product_name'] || '', fieldMap['product_category'] || '', fieldMap['order_quantity'] || '', fieldMap['total_sale'] || ''] }
+            ]);
+            setLoading(true);
+        }
+    }, [matchingResult]);
 
-        { width: 12, height: '360px', title: 'Time Series', type: 'Linechart', id: 'column-chart', data: {}, 
-        fields: {"categoryfield":"order_date","valuefield":"total_sale","agg":"SUM"}},
+    useEffect(() => {
+        const fetchFieldInfo = async () => {
+            if (selectedField) {
+                const info = await get_info_field(selectedField);
+                setFieldInfo(info);
+            }
+        };
 
-        { width: 6, height: '360px', title: 'Top Product', type: 'Barchart', id: 'bar-chart', data: {}, 
-        fields: {"categoryfield":"product_name","valuefield":"total_sale","agg":"SUM"}},
-
-        { width: 6, height: '360px', title: 'Segment of Category', type: 'Piechart', id: 'pie-chart', data: {}, 
-        fields: {"categoryfield":"product_category","valuefield":"total_sale","agg":"SUM"}},
-
-        { width: 12, height: '360px', title: 'Product Detail', type: 'Table', id: 'table', data: {}, 
-        fields: ['order_date','product_name', "product_subcategory", "product_category", "order_count", "order_quantity", 'total_sale']}
-    ]);
+        fetchFieldInfo();
+    }, [selectedField]);
 
     const renderFunctionOptions = () => {
-        if (!selectedField || !columns[selectedField]) {
+        if (!fieldInfo) {
             return null;
         }
 
-        const fieldType = columns[selectedField];
+        const fieldType = fieldInfo.type;
         let options = [];
-        if (fieldType === 'number') {
+        if (['int', 'float', 'tinyint'].includes(fieldType)) {
             options = [
                 { label: 'Sum', value: 'SUM' },
                 { label: 'Average', value: 'AVERAGE' },
@@ -283,109 +401,105 @@ const DashDefault = () => {
     };
 
     useEffect(() => {
-        if (updateVisualizations) {
-            const newVisualList = visualList.map(visualization => {
-                const { type, fields } = visualization;
-                let newData = {};
-                if (type === 'Card') {
-                    newData = get_data_card(fields.field, fields.agg);
-                } else if (type === 'Barchart' || type === 'Columnchart' || type === 'Piechart' || type === 'Linechart') {
-                    newData = get_data_bcp(fields.categoryfield, fields.valuefield, fields.agg);
-                } else if (type === 'Table') {
-                    newData = get_data_table(fields);
-                }
-                return { ...visualization, data: newData };
-            });
-            setVisualList(newVisualList);
+        const fetchVisualData = async () => {
+            if (Object.keys(matchingResult).length > 0) {
+                const fieldMap = createFieldMap(matchingResult);
+                const orderDateField = fieldMap['order_date'];
     
-            setUpdateVisualizations(false);
+                // Compute filterParams once
+                const filterParams = convertFiltersToParams(filterList, startTime, endTime, orderDateField);
+    
+                const promises = visualList.map(async (visual) => {
+                    const { type, fields } = visual;
+                    let data;
+    
+                    try {
+                        if (fields && ['Barchart', 'Columnchart'].includes(type)) {
+                            const { categoryfield, valuefield, agg, sort_category, sort_value, top } = fields;
+                            data = await get_data_bcp(categoryfield, valuefield, agg, sort_category, 'DESC', 10, filterParams);
+                        } else if (fields && type === 'Linechart') {
+                            const { categoryfield, valuefield, agg, sort_category, sort_value, top } = fields;
+                            data = await get_data_bcp(categoryfield, valuefield, agg, 'ASC', sort_value, 120, filterParams);
+                        } else if (fields && type === 'Piechart') {
+                            const { categoryfield, valuefield, agg, sort_category, sort_value, top } = fields;
+                            data = await get_data_bcp(categoryfield, valuefield, agg, sort_category, sort_value, top, filterParams);
+                        } else if (fields && type === 'Card') {
+                            const { field, agg } = fields;
+                            data = await get_data_card(field, agg, filterParams);
+                        } else if (fields && type === 'Table') {
+                            const list_field_str = fields.join(',');
+                            data = await get_data_table(list_field_str, filterParams);
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch data:', error);
+                        data = null; // Set default value on error
+                    }
+    
+                    return { ...visual, data: data };
+                });
+    
+                const visualsWithData = await Promise.all(promises);
+                setVisualList(visualsWithData);
+                setLoading(false);
+            }
+        };
+    
+        if (loading) {
+            fetchVisualData();
         }
-    }, [updateVisualizations, visualList]); 
+    }, [loading, visualList, filterList, startTime, endTime, matchingResult]);
+    
     
 
     const renderVisualization = (visualization) => {
-        const fields = visualization.fields;
-        switch (visualization.type) {
-            case 'Card':
-                if (fields) {
-                    const {field, agg } = fields;
-                    visualization.data = get_data_card(field, agg);
-                }
-                return (
-                    <MainCard title={visualization.title} isOption>
-                        <Card.Body>
-                            <div style={{ height: visualization.height, display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
-                                <h3 className="f-w-300">
-                                    {formatNumber(visualization.data)}
-                                </h3>
-                            </div>
-                        </Card.Body>
-                    </MainCard>
-                );
-            case 'LineColumnChart':
-                return (
-                    <MainCard title={visualization.title} isOption>
-                        <LineColumnChart id={visualization.id} data={visualization.data} height={visualization.height} />
-                    </MainCard>
-                );
-            case 'Barchart':
-                if (fields) {
-                    const { categoryfield, valuefield, agg } = fields;
-                    visualization.data = get_data_bcp(categoryfield, valuefield, agg,"desc","10");
-                }
-                return (
-                    <MainCard title={visualization.title} isOption>
-                        <Barchart id={visualization.id} data={visualization.data} height={visualization.height} 
-                        categoryfield = {visualization.fields.categoryfield} valuefield={visualization.fields.valuefield}/>
-                    </MainCard>
-                );
-            case 'Columnchart':
-                if (fields) {
-                    const { categoryfield, valuefield, agg } = fields;
-                    visualization.data = get_data_bcp(categoryfield, valuefield, agg);
-                }
-                return (
-                    <MainCard title={visualization.title} isOption>
-                        <Columnchart id={visualization.id} data={visualization.data} height={visualization.height}
-                        categoryfield = {visualization.fields.categoryfield} valuefield={visualization.fields.valuefield}/>
-                    </MainCard>
-                );
-            case 'Piechart':
-                if (fields) {
-                    const { categoryfield, valuefield, agg } = fields;
-                    visualization.data = get_data_bcp(categoryfield, valuefield, agg,"desc");
-                }
-                return (
-                    <MainCard title={visualization.title} isOption>
-                        <Piechart id={visualization.id} data={visualization.data} height={visualization.height} />
-                    </MainCard>
-                );
-                case 'Linechart':
-                    if (fields) {
-                        const { categoryfield, valuefield, agg } = fields;
-                        visualization.data = get_data_bcp(categoryfield, valuefield, agg);
-                    }
-                    return (
-                        <MainCard title={visualization.title} isOption>
-                            <Linechart id={visualization.id} data={visualization.data} height={visualization.height}
-                            categoryfield = {visualization.fields.categoryfield} valuefield={visualization.fields.valuefield}/>
-                        </MainCard>
-                    );
-                case 'Table':
-                    if (fields) {
-                        visualization.data = get_data_table(fields);
-                    }
-                    return (
-                        <MainCard title={visualization.title} isOption>
-                            <TablePreview data={visualization.data}/>
-                        </MainCard>
-                    );
-            default:
-                return null;
+        const { type, title, data, id, height, fields } = visualization;
+
+        const ChartComponent = {
+            'Barchart': Barchart,
+            'Columnchart': Columnchart,
+            'Piechart': Piechart,
+            'Linechart': Linechart,
+            'Card': Card,
+            'Table': TablePreview,
+        }[type];
+
+        if (!ChartComponent) return null;
+
+        if (type === 'Table') {
+
+            return (
+                <MainCard title={title} isOption data={data}>
+                    <TablePreview data={data} />
+                </MainCard>
+            );
+        }
+
+        else if (type === 'Card') {
+            return (
+                <MainCard title={title} isOption>
+                    <Card.Body>
+                        <div style={{ height: height, display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
+                            <h3 className="f-w-300">
+                                {formatNumber(data)}
+                            </h3>
+                        </div>
+                    </Card.Body>
+                </MainCard>
+            );
+        } else {
+            return (
+                <MainCard title={title} isOption data={data}>
+                    <ChartComponent id={id} data={data} height={height}
+                    categoryfield={fields.categoryfield} valuefield={fields.valuefield} 
+                    sort_category={fields.sort_category} sort_value={fields.sort_value} top = {fields.top} />
+                </MainCard>
+            );
         }
     };
 
     const renderDashboard = () => {
+        if (loading) return <div>Loading visualizations...</div>;
+
         return visualList.map((visualization, index) => (
             <Col key={index} xl={visualization.width}>
                 {renderVisualization(visualization)}
@@ -421,12 +535,34 @@ const DashDefault = () => {
                 };
             }
         });
-        console.log(newVis)
+    };
+
+    const fetchNewVisualData = async (visual) => {
+        const { type, fields } = visual;
+        let data;
+    
+        if (fields && ['Barchart', 'Columnchart'].includes(type)) {
+            const { categoryfield, valuefield, agg, sort_category } = fields;
+            data = await get_data_bcp(categoryfield, valuefield, agg, sort_category, 'DESC', 10);
+        } else if (fields && type === 'Linechart') {
+            const { categoryfield, valuefield, agg, sort_value} = fields;
+            data = await get_data_bcp(categoryfield, valuefield, agg, 'ASC', sort_value, 30);
+        } else if (fields && type === 'Piechart') {
+            const { categoryfield, valuefield, agg, sort_category, sort_value, top } = fields;
+            data = await get_data_bcp(categoryfield, valuefield, agg, sort_category, sort_value, top);
+        } else if (fields && type === 'Card') {
+            const { field, agg } = fields;
+            data = await get_data_card(field, agg);
+        } else if (fields && type === 'Table') {
+            const list_field_str = fields.join(',');
+            data = await get_data_table(list_field_str);
+        }
+    
+        return { ...visual, data };
     };
     
-    
 
-    const handleAddVisualization = () => {
+    const handleAddVisualization = async () => {
         const newVisId = `vis-${new Date().getTime()}`;
         const defaultHeight = newVis.type === 'Card' ? '5px' : '360px';
     
@@ -440,7 +576,8 @@ const DashDefault = () => {
         };
     
         if (updatedNewVis) {
-            setVisualList([...visualList, updatedNewVis]);
+            const newVisualWithData = await fetchNewVisualData(updatedNewVis);
+            setVisualList([...visualList, newVisualWithData]);
             setShowAddVisual(false);
             setNewVis({
                 width: '',
@@ -563,7 +700,7 @@ const DashDefault = () => {
                                         }}>
                                     
                                         <option value="">Choose...</option>
-                                        {Object.keys(columns).map(field => (
+                                        {columns.map(field => (
                                             <option key={field} value={field}>{field}</option>
                                         ))}
                                      </Form.Control>
@@ -590,7 +727,7 @@ const DashDefault = () => {
                                         }}>
                                     
                                         <option value="">Choose...</option>
-                                        {Object.keys(columns).map(field => (
+                                        {columns.map(field => (
                                             <option key={field} value={field}>{field}</option>
                                         ))}
                                      </Form.Control>
@@ -609,7 +746,7 @@ const DashDefault = () => {
                                        }}>
                                     
                                         <option value="">Choose...</option>
-                                        {Object.keys(columns).map(field => (
+                                        {columns.map(field => (
                                             <option key={field} value={field}>{field}</option>
                                         ))}
                                      </Form.Control>
@@ -638,8 +775,8 @@ const DashDefault = () => {
                                             value={field}                              
                                             onChange={e => addFieldTable(e.target.value, index)}>
                                             <option value="">Choose...</option>
-                                            {Object.keys(columns).map(col => (
-                                                <option key={col} value={col}>{col}</option>
+                                            {columns.map(field => (
+                                            <option key={field} value={field}>{field}</option>
                                             ))}
                                         </Form.Control>
                                     </Col>
@@ -675,7 +812,7 @@ const DashDefault = () => {
                                         }}>
                                     
                                         <option value="">Choose...</option>
-                                        {Object.keys(columns).map(field => (
+                                        {columns.map(field => (
                                             <option key={field} value={field}>{field}</option>
                                         ))}
                                      </Form.Control>

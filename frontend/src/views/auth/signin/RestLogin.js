@@ -15,6 +15,12 @@ const RestLogin = ({ className, ...rest }) => {
     const scriptedRef = useScriptRef();
     let history = useHistory();
 
+    const setJwtCookie = (jwt) => {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (60 * 60 * 1000)); // Set hạn sử dụng là 7 ngày
+        document.cookie = `jwt=${jwt}; expires=${expires.toUTCString()}; path=/; secure; SameSite=None;`;
+    };
+
     return (
         <React.Fragment>
             <Formik
@@ -36,12 +42,12 @@ const RestLogin = ({ className, ...rest }) => {
                         })
                         .then(function (response) {
                             if (response.data.jwt) { // Kiểm tra xem phản hồi có chứa JWT không
-                                // Lưu trữ JWT và cập nhật trạng thái người dùng
+                                setJwtCookie(response.data.jwt); // Lưu trữ JWT vào cookie
                                 dispatcher({
                                     type: ACCOUNT_INITIALIZE,
                                     payload: { isLoggedIn: true, token: response.data.jwt }
                                 });
-                                history.push('/dashboard');
+                                history.push('/create');
                                 if (scriptedRef.current) {
                                     setStatus({ success: true });
                                     setSubmitting(false);

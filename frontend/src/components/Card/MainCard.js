@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Dropdown, Card, Collapse } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-
+import { utils, writeFile } from 'xlsx';
 import useWindowSize from '../../hooks/useWindowSize';
 
 const MainCard = (props) => {
-    const { isOption, title, children, cardClass, optionClass } = props;
+    const { isOption, title, children, cardClass, optionClass, data } = props;
 
     const [fullCard, setFullCard] = useState(false);
     const [collapseCard, setCollapseCard] = useState(false);
@@ -23,6 +23,14 @@ const MainCard = (props) => {
 
     const cardRemoveHandler = () => {
         setCardRemove(true);
+    };
+
+    const exportDataHandler = () => {
+        const fileName = `${title.replace(/\s+/g, '_').toLowerCase()}.xlsx`;
+        const worksheet = utils.json_to_sheet(data);
+        const workbook = utils.book_new();
+        utils.book_append_sheet(workbook, worksheet, 'Data');
+        writeFile(workbook, fileName);
     };
 
     let fullScreenStyle, loader, cardHeaderRight, cardHeader;
@@ -52,6 +60,10 @@ const MainCard = (props) => {
                         <Dropdown.Item as="li" className="dropdown-item" onClick={cardRemoveHandler}>
                             <i className="feather icon-trash" />
                             <Link to="#"> Remove </Link>
+                        </Dropdown.Item>
+                        <Dropdown.Item as="li" className="dropdown-item" onClick={exportDataHandler}>
+                            <i className="feather icon-download" />
+                            <Link to="#"> Export Data </Link>
                         </Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>

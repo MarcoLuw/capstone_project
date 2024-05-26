@@ -3,20 +3,72 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.cache import cache
+from django.db.models import Min, Max
+from django.core.cache import cache
+from datetime import datetime
+
+
 
 import userdb.views as userdbViews
+import os
 
 import logging
 import pandas as pd
 import json
 import pymysql
+from openai import OpenAI
 # Create your views here.
-
-# Demo information
-FILE_PATH = 'storage/dim_store.csv'
 
 # Config logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s: [%(levelname)s] - %(message)s')
+
+# Lưu columns và matching_result vào cache
+def save_to_cache(columns, matching_result):
+    cache.set('columns', columns, timeout=None)  # timeout=None để lưu trữ vô thời hạn
+    cache.set('matching_result', matching_result, timeout=None)
+
+# Tải columns và matching_result từ cache
+def load_from_cache():
+    columns = cache.get('columns', [])
+    matching_result = cache.get('matching_result', {})
+    return columns, matching_result
+
+COLUMN_MAPPING = {}
+
+TEMP_MAPPING = {
+        "Mã đơn hàng": {
+            "table": "fact_ecommerce_sales",
+            "field": "order_number"
+        },
+        "Ngày đặt hàng": {
+            "table": "fact_ecommerce_sales",
+            "field": "order_date"
+        },
+        "SKU sản phẩm": {
+            "table": "dim_product",
+            "field": "product_key"
+        },
+        "Tên sản phẩm": {
+            "table": "dim_product",
+            "field": "product_name"
+        },
+        "Loại sản phẩm": {
+            "table": "dim_product",
+            "field": "product_category"
+        },
+        "Số lượng": {
+            "table": "fact_ecommerce_sales",
+            "field": "order_quantity"
+        },
+        "Tổng giá bán (sản phẩm)": {
+            "table": "fact_ecommerce_sales",
+            "field": "total_sale"
+        },
+        "Người Mua": {
+            "table": "dim_customer",
+            "field": "full_name"
+        }
+    }
 
 # Define The NUMERIC_FIELDS and AGGREGATION_OPTIONS
 NUMERIC_FIELDS = [
@@ -25,43 +77,41 @@ NUMERIC_FIELDS = [
                 'unit_price', 'unit_cost', 'order_quantity', 'total_sale'
                 ]
 
+SCHEMAS_JSON = {
+    "tables": {
+        "fact_ecommerce_sales": [
+            {"field": "order_date", "description": "The date the order was placed"},
+            {"field": "order_number", "description": "Unique identifier for the order"},
+            {"field": "order_line_number", "description": "Unique identifier for the order line"},
+            {"field": "order_quantity", "description": "Number of items ordered"},
+            {"field": "unit_price", "description": "Price per unit of the product"},
+            {"field": "total_sale", "description": "Total sales amount"}
+        ],
+        "dim_product": [
+            {"field": "product_key", "description": "Unique key for the product"},
+            {"field": "product_name", "description": "Name of the product"},
+            {"field": "product_subcategory", "description": "Subcategory of the product"},
+            {"field": "product_category", "description": "Category of the product"}
+        ],
+        "dim_customer": [
+            {"field": "customer_key", "description": "Unique key for the customer"},
+            {"field": "first_name", "description": "Customer's first name"},
+            {"field": "last_name", "description": "Customer's last name"},
+            {"field": "full_name", "description": "Customer's full name"}
+        ]
+    }
+}
+
+
 AGGREGATION_OPTIONS = ['SUM', 'AVERAGE', 'COUNT', 'DISTINCT']
 
-def readCsvFile(filepath: str) -> pd.DataFrame:
-    # Read the CSV file
-    df = pd.read_csv(filepath)
-    return df
 
-def readJsonFile(filepath: str):
+def readJsonFile(filepath: str) -> pd.DataFrame:
     # Read the JSON file
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    return data
-
-def loadDataFrame(filepath: str) -> pd.DataFrame:
-    # Try to read the cache
-    # df = readCsvFile(cache_key)
-    file_name = FILE_PATH.split('/')[-1]
-    cache_key = file_name
-    # print(f'[INFO]    File to be use: {file_name}')
-    logging.info(f'Load Full DataFrame from: {FILE_PATH}')
-    logging.info(f'File to be use: {file_name}')
-
-    df = cache.get(cache_key)
-    if df is None:
-        logging.info(f'Cache miss for {cache_key}')
-        logging.info(f'Reading the file {filepath}')
-        try:
-            # Read the CSV file and set the cache
-            df = readCsvFile(filepath)
-            cache.set(cache_key, df, timeout=60*60*24)
-            logging.info(f'Read Successfully! Cache set for {cache_key}')
-        except Exception as e:
-            logging.error(e)
-            logging.error(f'Could not read the file {filepath}')
-    else:
-        logging.info(f'Cache hit for {cache_key}')
-        logging.info(f'Get the data from cache for {cache_key}')
+    # Convert JSON data to DataFrame
+    df = pd.DataFrame(data)
     return df
 
 def connectToDB():
@@ -69,7 +119,7 @@ def connectToDB():
     server = 'host.docker.internal'
     database = 'dw'
     username = 'root'
-    password = 'root'
+    password = 'lengochoa2002'
 
     # Create the connection string
     connection_string = {
@@ -89,25 +139,190 @@ def connectToDB():
 
     return conn
 
-
-class GetALLColumnsView(APIView):
+class GetInfoFieldView(APIView):
     def get(self, request):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        field = request.GET.get('field', None)
+        if not field:
+            return Response({"message": "Field parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        columns, matching_result = load_from_cache()
+        global COLUMN_MAPPING
+        COLUMN_MAPPING = TEMP_MAPPING
+
+        # Map the field using COLUMN_MAPPING
+        if field in COLUMN_MAPPING:
+            table_name = COLUMN_MAPPING[field]['table']
+            column_name = COLUMN_MAPPING[field]['field']
+        else:
+            return Response({"message": "Invalid field name."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get field type from database
+        field_type = self.getFieldType(column_name, table_name)
+        if not field_type:
+            return Response({"message": "Could not determine field type."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if field_type in ['int','float','date','datetime','tinyint']:
+            min_value, max_value = self.getMinAndMaxValues(column_name, table_name)
+            if min_value is None or max_value is None:
+                return Response({"data": None}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"type": field_type, "values": {"min": min_value, "max": max_value}}, status=status.HTTP_200_OK)
+        else:
+            unique_values = self.getDistinctValues(column_name, table_name)
+            return Response({"type": field_type, "values": list(unique_values)}, status=status.HTTP_200_OK)
+
+    def getFieldType(self, column_name, table_name):
+        conn = connectToDB()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT data_type 
+            FROM information_schema.columns 
+            WHERE table_name = %s AND column_name = %s
+        """, (table_name, column_name))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result[0] if result else None
+
+    def getMinAndMaxValues(self, column_name, table_name):
+        conn = connectToDB()
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT MIN({column_name}), MAX({column_name}) FROM {table_name}")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result
+
+    def getDistinctValues(self, column_name, table_name):
+        conn = connectToDB()
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT DISTINCT {column_name} FROM {table_name}")
+        results = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return [row[0] for row in results]
+
+class GetAllColumnsView(APIView):
+    def get(self, request):
+        # Load matching_result from cache
+        matching_result = cache.get('matching_result', {})
+
+        
+        if not matching_result:
+            return Response({"message": "No matching result found in cache."}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({"matching_result": matching_result}, status=status.HTTP_200_OK)
+
+
+
+class GetMappingColumnsView(APIView):
+    def get(self, request):
+        isAuth, payload = userdbViews.isAuthenticate(request)
+        if not isAuth:
+            return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        OPENAI_API_KEY=""
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
+
+        # file_name = cache.get('FILE_NAME')
+        # FILE_PATH = f'storage/{file_name}'
+        FILE_PATH = f'storage/output.json'
         # Load the full dataframe
         try:
-            full_df = loadDataFrame(FILE_PATH)
+            sample_df = readJsonFile(FILE_PATH)
         except Exception as e:
             # print(f'[ERROR]   {e}')
             logging.error(e)
             return Response({"message": "Could not read the file!"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Get the columns
-        columns = full_df.columns.tolist()
+        columns = sample_df.columns.tolist()
+
+        # Chuyển dòng đầu tiên của DataFrame thành dict
+        sample_dict = sample_df.iloc[0].to_dict()
+        sample = json.dumps(sample_dict , ensure_ascii=False, indent=4)
+        schemas = json.dumps(SCHEMAS_JSON, indent=4)
+
+
+        # Nếu bạn muốn xem nội dung của biến sample
+        response_result = self.matching_columns(schemas,sample)
+        matching_result = self.extract_json(response_result)
+        # print("json ngu",extract_result)
+        # matching_result = extract_result#json.loads(extract_result)
+
+        global COLUMN_MAPPING
+        COLUMN_MAPPING = matching_result
+
+        # Lưu columns và matching_result vào cache
+        save_to_cache(columns, matching_result)
         
-        return Response({"columns": columns}, status=status.HTTP_200_OK)
+        return Response({"columns":columns,"matching_result": matching_result}, status=status.HTTP_200_OK)
+    
+    def extract_json(self, string):
+        # Tìm vị trí bắt đầu và kết thúc của chuỗi JSON
+        start = string.find('{')
+        end = string.rfind('}') + 1
+        # Trích xuất chuỗi JSON
+        json_str = string[start:end]
+        # Chuyển chuỗi JSON thành đối tượng Python
+        json_obj = json.loads(json_str)
+        # Trả về đối tượng JSON
+        return json_obj
+    
+    def matching_columns(self, schemas, user_columns):
+
+        system_config = """
+        You are a data engineering chatbot. Your task is to match the user's columns with the default schemas based on similar meanings.
+        If a user's column matches a default column, provide only a "tables" and a "field" it matches. Otherwise, do nothing.
+        Generate the matching results for all user's columns in JSON format. Only output JSON. Do not include any other text.
+        Format:
+        "User's column here": {
+            "table": "Default Table here",
+            "field": "Default field here"
+        },
+        """
+
+        response = self.client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_config},
+                {"role": "system", "content": schemas},
+                {"role": "user", "content": user_columns}
+            ],
+            max_tokens=4096,
+            temperature=0,
+        )
+        return response.choices[0].message.content
+        
+class UpdateColumnMappingView(APIView):
+    def post(self, request):
+        global COLUMN_MAPPING
+        updates = request.data  # Expecting a dictionary of updates
+
+        if not isinstance(updates, dict):
+            return Response({"message": "Invalid data format, expecting a dictionary"}, status=status.HTTP_400_BAD_REQUEST)
+
+        for defaultField, newField in updates.items():
+            if defaultField in COLUMN_MAPPING:
+                # Get the current mapping information
+                current_mapping = COLUMN_MAPPING[defaultField]
+                # Delete the old entry
+                del COLUMN_MAPPING[defaultField]
+                # Add the new entry with updated key
+                COLUMN_MAPPING[newField] = current_mapping
+                # Keep the original 'field' value unchanged
+            else:
+                continue
+                # return Response({"message": f"Invalid default field: {defaultField}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Cập nhật cache với COLUMN_MAPPING
+        columns, _ = load_from_cache()
+        save_to_cache(columns, COLUMN_MAPPING)
+        
+        return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
 
 
 class GetCardView(APIView):
@@ -116,20 +331,78 @@ class GetCardView(APIView):
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
+        # Load COLUMN_MAPPING from cache
+        columns, matching_result = load_from_cache()
+        global COLUMN_MAPPING
+        COLUMN_MAPPING = TEMP_MAPPING
+
         # Get the field and aggregation from the request
-        field = request.data.get('field', None)
-        aggre = request.data.get('agg', None)
+        field = request.GET.get('field', None)
+        aggre = request.GET.get('agg', None)
 
-        # print(f'Field: {field}, Aggregation: {aggre}')
+        if not field or not aggre:
+            return Response({"message": "Field and aggregation type are required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Map the field using COLUMN_MAPPING
+        if field in COLUMN_MAPPING:
+            table = COLUMN_MAPPING[field]['table']
+            original_field = COLUMN_MAPPING[field]['field']
+        else:
+            return Response({"message": "Invalid field."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get command
-        cmd = self.generateAggregationQueryCard(field, aggre)
+        # Collect filter parameters and map them
+        where_clauses = []
+        tables = {table}  # Set to keep track of all tables involved in the query
+        join_conditions = []
+
+        i = 1
+        while True:
+            filter_field_key = f'filter_field{i}'
+            filter_field = request.GET.get(filter_field_key, None)
+            if not filter_field:
+                break
+
+            # Map the filter field using COLUMN_MAPPING
+            if filter_field in COLUMN_MAPPING:
+                filter_table = COLUMN_MAPPING[filter_field]['table']
+                filter_column = COLUMN_MAPPING[filter_field]['field']
+                tables.add(filter_table)  # Add table to the set
+
+                # Add join condition only if the tables are different
+                if filter_table != table:
+                    join_condition = f"{table}.product_key = {filter_table}.product_key"
+                    if join_condition not in join_conditions:
+                        join_conditions.append(join_condition)
+            else:
+                return Response({"message": f"Invalid filter field: {filter_field}."}, status=status.HTTP_400_BAD_REQUEST)
+
+            filter_value = request.GET.get(f'filter_value{i}', None)
+            if filter_value:
+                values = "', '".join(filter_value.split(','))
+                where_clauses.append(f"{filter_column} IN ('{values}')")
+            else:
+                filter_start = request.GET.get(f'filter_field{i}_start', None)
+                filter_end = request.GET.get(f'filter_field{i}_end', None)
+                if filter_start and filter_end:
+                    where_clauses.append(f"{filter_column} BETWEEN '{filter_start}' AND '{filter_end}'")
+
+            i += 1
+
+        where_clause = ' AND '.join(where_clauses) if where_clauses else '1=1'
+        from_clause = ', '.join(tables)
+        if join_conditions:
+            join_clause = ' AND '.join(join_conditions)
+            where_clause = f"{join_clause} AND {where_clause}"
+
+        # Generate the command
+        cmd = self.generateAggregationQueryCard(from_clause, original_field, aggre, where_clause)
+        print("cmd ngu",cmd)
         if cmd == 'Invalid':
             return Response({"data": 0}, status=status.HTTP_204_NO_CONTENT)
 
         # Initialize connection to db
         conn = connectToDB()
-        # return Response({"message": "Connect to DB successfully."}, status=status.HTTP_200_OK)
+        
         # Perform a query
         try:
             cursor = conn.cursor()
@@ -142,24 +415,25 @@ class GetCardView(APIView):
             logging.error(f"Error executing query: {e}")
             return Response({"message": "Error executing query."}, status=status.HTTP_400_BAD_REQUEST)
 
-
-    # helper function to generate aggregation query for card view
-    def generateAggregationQueryCard(self, field: str, aggre: str):
+    # Helper function to generate aggregation query for card view
+    def generateAggregationQueryCard(self, from_clause: str, field: str, aggre: str, where_clause: str):
         if field not in NUMERIC_FIELDS and aggre in ['SUM', 'AVERAGE']:
             return 'Invalid'
         
         if aggre == 'SUM':
-            query = f'SELECT SUM({field}) FROM fact_ecommerce_sales;'
+            query = f'SELECT SUM({field}) FROM {from_clause} WHERE {where_clause};'
         elif aggre == 'AVERAGE':
-            query = f'SELECT AVG({field}) FROM fact_ecommerce_sales;'
+            query = f'SELECT AVG({field}) FROM {from_clause} WHERE {where_clause};'
         elif aggre == 'COUNT':
-            query = f'SELECT COUNT({field}) FROM fact_ecommerce_sales;'
+            query = f'SELECT COUNT({field}) FROM {from_clause} WHERE {where_clause};'
         elif aggre == 'DISTINCT':
-            query = f'SELECT COUNT(DISTINCT {field}) FROM fact_ecommerce_sales;'
+            query = f'SELECT COUNT(DISTINCT {field}) FROM {from_clause} WHERE {where_clause};'
         else: 
             query = 'Invalid'
         
         return query
+
+    
 
 
 """ ----- Get Bar - Column - Pie View ----- """
@@ -169,48 +443,329 @@ class GetBCPView(APIView):
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
-        # Get the field, valuefield and aggregation from the request
-        categoryfield = request.data.get('categoryfield', None)
-        valuefield = request.data.get('valuefield', None)
-        agg = request.data.get('agg', None)
+        columns, matching_result = load_from_cache()
+        global COLUMN_MAPPING
+        COLUMN_MAPPING = TEMP_MAPPING
+        
+        categoryfield = request.GET.get('categoryfield', None)
+        valuefield = request.GET.get('valuefield', None)
+        agg = request.GET.get('agg', None)
+        sort_category = request.GET.get('sort_category', None)  # Mặc định DESC cho categoryfield
+        sort_value = request.GET.get('sort_value', None)  # Mặc định ASC cho {agg_func}({valuefield})
+        top = request.GET.get('top', None)
 
-        # Initialize connection to db
+        if not categoryfield or not valuefield or not agg:
+            return Response({"message": "Category field, value field, and aggregation type are required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Map the fields using COLUMN_MAPPING
+        if categoryfield in COLUMN_MAPPING:
+            category_table = COLUMN_MAPPING[categoryfield]['table']
+            category_field = COLUMN_MAPPING[categoryfield]['field']
+        else:
+            return Response({"message": "Invalid category field."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if valuefield in COLUMN_MAPPING:
+            value_table = COLUMN_MAPPING[valuefield]['table']
+            value_field = COLUMN_MAPPING[valuefield]['field']
+        else:
+            return Response({"message": "Invalid value field."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Collect filter parameters and map them
+        where_clauses = []
+        
+        i = 1
+        while True:
+            filter_field_key = f'filter_field{i}'
+            filter_field = request.GET.get(filter_field_key, None)
+            if not filter_field:
+                break
+
+            # Map the filter field using COLUMN_MAPPING
+            if filter_field in COLUMN_MAPPING:
+                filter_column = COLUMN_MAPPING[filter_field]['field']
+            else:
+                return Response({"message": f"Invalid filter field: {filter_field}."}, status=status.HTTP_400_BAD_REQUEST)
+
+            filter_value = request.GET.get(f'filter_value{i}', None)
+            if filter_value:
+                values = "', '".join(filter_value.split(','))
+                where_clauses.append(f"{filter_column} IN ('{values}')")
+            else:
+                filter_start = request.GET.get(f'filter_field{i}_start', None)
+                filter_end = request.GET.get(f'filter_field{i}_end', None)
+                if filter_start and filter_end:
+                    where_clauses.append(f"{filter_column} BETWEEN '{filter_start}' AND '{filter_end}'")
+
+            i += 1
+
+        where_clause = ' AND '.join(where_clauses) if where_clauses else '1=1'
+
         conn = connectToDB()
-
-        # Get command
-        cmd = self.generateAggregationQueryBCP(categoryfield, valuefield, agg)
+        cmd = self.generateAggregationQueryBCP(category_table, category_field, value_table, value_field, agg, where_clause, sort_category, sort_value, top)
         if cmd == 'Invalid':
             return Response({"data": []}, status=status.HTTP_204_NO_CONTENT)
-        
-        # Perform a query
+
         try:
             cursor = conn.cursor()
             cursor.execute(cmd)
             rows = cursor.fetchall()
-            # Handle data string
-            data = []
-            for row in rows:
-                categoryfield, value = row
-                data.append({'categoryfield': categoryfield, 'value': value})
+            data = [self.formatRow(row) for row in rows]
+            
+            if top:
+                top = int(top)  # Convert the top parameter to an integer
+                data = data[:top]
+            
             return Response({"data": data}, status=status.HTTP_200_OK)
         except Exception as e:
             logging.error(f"Error executing query: {e}")
             return Response({"message": "Error executing query."}, status=status.HTTP_400_BAD_REQUEST)
 
-    
-    def generateAggregationQueryBCP(self, categoryfield: str, valuefield: str, agg: str):
-        if categoryfield not in NUMERIC_FIELDS and valuefield not in NUMERIC_FIELDS:
-            return 'Invalid'
-        
+    def generateAggregationQueryBCP(self, category_table: str, category_field: str, value_table: str, value_field: str, agg: str, where_clause: str, sort_category: str, sort_value: str, top: str):
+        # Xác định hàm tổng hợp
+        agg_func = ''
         if agg == 'SUM':
-            query = f'SELECT {categoryfield}, SUM({valuefield}) as sum_value FROM fact_ecommerce_sales GROUP BY {categoryfield} ORDER BY sum_value DESC LIMIT 10;'
+            agg_func = 'SUM'
         elif agg == 'AVERAGE':
-            query = f'SELECT {categoryfield}, AVG({valuefield}) as avg_value FROM fact_ecommerce_sales GROUP BY {categoryfield} ORDER BY avg_value DESC LIMIT 10;'
+            agg_func = 'AVG'
         elif agg == 'COUNT':
-            query = f'SELECT {categoryfield}, COUNT({valuefield}) as count_value FROM fact_ecommerce_sales GROUP BY {categoryfield} ORDER BY count_value DESC LIMIT 10;'
+            agg_func = 'COUNT'
         elif agg == 'DISTINCT':
-            query = f'SELECT {categoryfield}, COUNT(DISTINCT {valuefield}) as distinct_value FROM fact_ecommerce_sales GROUP BY {categoryfield} ORDER BY distinct_value DESC LIMIT 10;'
-        else: 
-            query = 'Invalid'
-        
+            agg_func = f'COUNT(DISTINCT {value_field})'
+        else:
+            return 'Invalid'
+
+        # Xây dựng câu truy vấn với JOIN
+        query = (f"SELECT {category_table}.{category_field}, {agg_func}({value_table}.{value_field}) as agg_value "
+                 f"FROM fact_ecommerce_sales "
+                 f"JOIN dim_product ON fact_ecommerce_sales.product_key = dim_product.product_key "
+                 f"WHERE {where_clause} "
+                 f"GROUP BY {category_table}.{category_field}")
+
+        # Áp dụng sắp xếp cho categoryfield
+        if sort_category:
+            query += f" ORDER BY {category_table}.{category_field} {sort_category}"
+        if sort_value:
+            # Áp dụng sắp xếp cho giá trị được tính toán
+            if not sort_category:
+                query += " ORDER BY"
+            else:
+                query += ","
+            query += f" agg_value {sort_value}"
+
+        # Áp dụng giới hạn cho kết quả truy vấn
+        if top:
+            try:
+                top = int(top)
+                query += f" LIMIT {top}"
+            except ValueError:
+                return 'Invalid'
+            
         return query
+
+    # Phương thức formatRow sửa đổi
+    def formatRow(self, row):
+        return {"categoryfield": row[0], "valuefield": row[1]}
+
+
+    
+class GetDataTableView(APIView):
+    def get(self, request):
+        # Authentication check
+        isAuth, payload = userdbViews.isAuthenticate(request)
+        if not isAuth:
+            return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        list_field = request.GET.get('list_field')
+        if not list_field:
+            return Response({"message": "list_field parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Load COLUMN_MAPPING from cache
+        columns, matching_result = load_from_cache()
+        global COLUMN_MAPPING
+        COLUMN_MAPPING = TEMP_MAPPING
+
+        # Map fields using COLUMN_MAPPING
+        list_fields = list_field.split(',')
+        mapped_fields = []
+        for field in list_fields:
+            if field in COLUMN_MAPPING:
+                table = COLUMN_MAPPING[field]['table']
+                original_field = COLUMN_MAPPING[field]['field']
+                mapped_fields.append((table, original_field))
+            else:
+                return Response({"message": f"Invalid field: {field}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Collect filter parameters and map them
+        where_clauses = []
+        tables = {field[0] for field in mapped_fields}  # Set to keep track of all tables involved in the query
+        join_conditions = []
+
+        i = 1
+        while True:
+            filter_field_key = f'filter_field{i}'
+            filter_field = request.GET.get(filter_field_key, None)
+            if not filter_field:
+                break
+
+            # Map the filter field using COLUMN_MAPPING
+            if filter_field in COLUMN_MAPPING:
+                filter_table = COLUMN_MAPPING[filter_field]['table']
+                filter_column = COLUMN_MAPPING[filter_field]['field']
+                tables.add(filter_table)  # Add table to the set
+
+                # Add join condition only if the tables are different
+                if filter_table not in tables:
+                    join_condition = f"{table}.product_key = {filter_table}.product_key"
+                    if join_condition not in join_conditions:
+                        join_conditions.append(join_condition)
+            else:
+                return Response({"message": f"Invalid filter field: {filter_field}."}, status=status.HTTP_400_BAD_REQUEST)
+
+            filter_value = request.GET.get(f'filter_value{i}', None)
+            if filter_value:
+                values = "', '".join(filter_value.split(','))
+                where_clauses.append(f"{filter_column} IN ('{values}')")
+            else:
+                filter_start = request.GET.get(f'filter_field{i}_start', None)
+                filter_end = request.GET.get(f'filter_field{i}_end', None)
+                if filter_start and filter_end:
+                    where_clauses.append(f"{filter_column} BETWEEN '{filter_start}' AND '{filter_end}'")
+
+            i += 1
+
+        where_clause = ' AND '.join(where_clauses) if where_clauses else '1=1'
+        from_clause = ', '.join(tables)
+        if join_conditions:
+            join_clause = ' AND '.join(join_conditions)
+            where_clause = f"{join_clause} AND {where_clause}"
+
+        conn = connectToDB()
+
+        # Generate the command
+        cmd = self.generate_select_query(mapped_fields, from_clause, where_clause)
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute(cmd)
+            rows = cursor.fetchall()
+            data = [self.formatRow(row, [field[1] for field in mapped_fields]) for row in rows]  # Pass list_fields to formatRow
+
+            return Response({"data": data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(f"Error executing query: {e}")
+            return Response({"message": f"Error executing query: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def formatRow(self, row, fields):
+        return {field: value for field, value in zip(fields, row)}
+
+    def generate_select_query(self, mapped_fields, from_clause, where_clause):
+        # Collect unique tables needed for the query
+        tables = {field[0] for field in mapped_fields}
+        if len(tables) == 1:
+            table = tables.pop()
+            select_clause = ", ".join(field[1] for field in mapped_fields)
+            return f"SELECT {select_clause} FROM {table} WHERE {where_clause} LIMIT 50"
+        else:
+            return self.generate_complex_query(mapped_fields, tables, where_clause)
+
+    def generate_complex_query(self, mapped_fields, tables, where_clause):
+        primary_table = list(tables)[0]
+        join_conditions = []
+        for table in tables:
+            if table != primary_table:
+                join_conditions.append(f"JOIN {table} ON {primary_table}.product_key = {table}.product_key")
+        join_clause = " ".join(join_conditions)
+        select_clause = ", ".join(f"{field[0]}.{field[1]}" for field in mapped_fields)
+        return f"SELECT {select_clause} FROM {primary_table} {join_clause} WHERE {where_clause} LIMIT 50"
+    
+
+class GetChatBotView(APIView):
+    def get(self, request):
+        isAuth, payload = userdbViews.isAuthenticate(request)
+        if not isAuth:
+            return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        OPENAI_API_KEY=""
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
+
+        # Load COLUMN_MAPPING from cache
+        columns, matching_result = load_from_cache()
+        global COLUMN_MAPPING
+        COLUMN_MAPPING = json.dumps(TEMP_MAPPING, indent=4)
+
+        user_prompt = request.GET.get('prompt')
+
+        retries = 2
+        for attempt in range(retries):
+            try:
+                response_text = self.generate_query(COLUMN_MAPPING, user_prompt)
+                print(response_text)
+                json_result = self.extract_json(response_text)
+                message_text = json_result.get('message')
+                query_text = json_result.get('query')
+                
+                if not query_text or query_text == "NULL":
+                    result = {"message": message_text, "data": ""}
+                    return Response(result, status=status.HTTP_200_OK)
+
+                conn = connectToDB()
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute(query_text)
+                    rows = cursor.fetchall()
+
+                    if not rows:
+                        raise ValueError("không có dữ liệu phù hợp cho yêu cầu của bạn.")
+
+                    # Fetch column names
+                    column_names = [desc[0] for desc in cursor.description]
+
+                    # Convert rows to a list of dictionaries
+                    data = [dict(zip(column_names, row)) for row in rows]
+
+                    if data:
+                        result = {"message": message_text, "data": data}
+                        return Response(result, status=status.HTTP_200_OK)
+
+                except Exception as e:
+                    logging.error(f"Error executing query: {e}")
+                    raise ValueError("yêu cầu truy vấn của bạn không thể thực hiện được.")
+                finally:
+                    cursor.close()
+                    conn.close()
+            except ValueError as e:
+                result = {"message": message_text + f" Rất tiếc vì {str(e)}", "data": None}
+                if attempt >= retries - 1:
+                    break  # Thoát vòng lặp nếu đây là lần thử cuối cùng
+
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+    
+    def extract_json(self, string):
+        # Tìm vị trí bắt đầu và kết thúc của chuỗi JSON
+        start = string.find('{')
+        end = string.rfind('}') + 1
+        # Trích xuất chuỗi JSON
+        json_str = string[start:end]
+        # Chuyển chuỗi JSON thành đối tượng Python
+        json_obj = json.loads(json_str)
+        # Trả về đối tượng JSON
+        return json_obj
+    
+    def generate_query(self, schemas, user_prompt):
+
+        system_config = """You are chatbot about data analyst. You will write query MySQL. But you don't say about MySQL. 
+        Respond format json like this:{"message":Short describe how to query the data for non-tech users, "query": insert SQL command here on oneline}"
+        If user just talk something with you, talk something in "message" and "query": ""
+        """
+
+        response = self.client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_config},
+                {"role": "system", "content": schemas},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=4096,
+            temperature=0,
+        )
+        return response.choices[0].message.content
