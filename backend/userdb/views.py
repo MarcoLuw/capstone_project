@@ -7,8 +7,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from .serializers import DatabaseConnectionSerializer, FileUploadSerializer
 from authentication.models import User
 from django.core.files.storage import default_storage
+from data_service import file_uploader, create_user
 
-import data_service.file_uploader as file_uploader
+import logging
 import psycopg2
 import pymysql
 import jwt
@@ -16,6 +17,9 @@ import os
 
 from .processData import ProcessData
 # Create your views here.
+
+# Config logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s: [%(levelname)s] - %(message)s')
 
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 # ROOT PATH is empty because the file is in the root directory already 
@@ -100,6 +104,7 @@ class ImportDataFromFileView(APIView):
         # if 'file' not in request.FILES:
         #     return Response({"Error": "No file was uploaded."}, status=status.HTTP_400_BAD_REQUEST)
         isAuth, payload = isAuthenticate(request)
+        print(f'Payload: {payload}')
         if not isAuth:
             return Response({"Error": "Unauthenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -118,8 +123,14 @@ class ImportDataFromFileView(APIView):
 
         # Upload the file to MinIO
         user = getUser(payload['id'])
-        access_key, secret_key = file_uploader.generate_dynamic_credentials(user.username)
-
+        print(f'User info: {user}')
+        # print(f'User name: {user.username}')
+        
+        # Check if the user exists in MinIO
+        if not create_user.is_user_exists(user.username):
+            create_user.create_user_and_set_policy(user.username)
+            logging.info(f'User {user.username} created successfully')
+        
         upload_result = file_uploader.uploadFile(filepath, user.username)
         if not upload_result:
             return Response({"Error": "Could not upload the file."}, status=status.HTTP_400_BAD_REQUEST)
