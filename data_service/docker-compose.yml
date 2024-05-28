@@ -53,7 +53,7 @@ services:
     entrypoint: >
       /bin/sh -c " until (/usr/bin/mc config host add minio http://minio:9000 minioadmin miniopassword) do echo '...waiting...' && sleep 1; done; 
       /usr/bin/mc mc admin policy create minio user_policy policy.json
-      /usr/bin/mc mb minio/hive;
+      /usr/bin/mc mb minio/hive/warehouse;
       /usr/bin/mc mb minio/logging/spark-events;
       /usr/bin/mc mb minio/data_services;
       tail -f /dev/null "
@@ -113,21 +113,20 @@ services:
       - "7077:7077"
       - "8889:8889"
     volumes:
-      - ./spark-apps/:/opt/spark-apps/
+      - ./spark_apps/:/opt/spark_apps/
+      - ./tests/:/opt/tests/
       - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
       - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
       - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
       - ./spark-config/conf/master/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
+      # - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./hadoop-libs/delta-core_2.12-2.4.0.jar:/opt/spark/jars/delta-core_2.12-2.4.0.jar
       - ./hadoop-libs/delta-storage-2.4.0.jar:/opt/spark/jars/delta-storage-2.4.0.jar
-      - ./hadoop-libs/spark-excel_2.12-3.4.2_0.20.3.jar:/opt/spark/jars/spark-excel_2.12-3.4.2_0.20.3.jar
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
       - PYSPARK_DRIVER_PYTHON=jupyter
-      - PYSPARK_DRIVER_PYTHON_OPTS=notebook --no-browser --port=8889 --allow-root --ip=0.0.0.0
-    command: pip install notebook
+      - PYSPARK_DRIVER_PYTHON_OPTS=jupyter notebook --no-browser --port=8889 --allow-root --ip=0.0.0.0
     networks:
       - data-services-network
 
@@ -146,15 +145,14 @@ services:
       - SPARK_EXECUTOR_MEMORY=1G
       - SPARK_WORKLOAD=worker
     volumes:
-      - ./spark-apps:/opt/spark-apps
+      - ./spark_apps:/opt/spark_apps
       - ./spark-config/conf/worker/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
+      # - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
       - ./hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
       - ./hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
       - ./hadoop-libs/delta-core_2.12-2.4.0.jar:/opt/spark/jars/delta-core_2.12-2.4.0.jar
       - ./hadoop-libs/delta-storage-2.4.0.jar:/opt/spark/jars/delta-storage-2.4.0.jar
-      - ./hadoop-libs/spark-excel_2.12-3.4.2_0.20.3.jar:/opt/spark/jars/spark-excel_2.12-3.4.2_0.20.3.jar
     networks:
       - data-services-network
 

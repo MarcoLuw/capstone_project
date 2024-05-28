@@ -24,43 +24,28 @@
 			"Effect": "Allow",
 			"Resource": [
 				"arn:aws:s3:::hive"
-			],
-			"Condition": {
-				"StringEquals": {
-					"s3:prefix": [
-						"",
-						"warehouse/${aws:username}/"
-					],
-					"s3:delimiter": [
-						"/"
-					]
-				}
-			}
+			]
 		},
 		{
+			"Sid": "AllowUserToCreateDatabase",
 			"Action": [
-				"s3:ListBucket"
+				"s3:PutObject",
+				"s3:GetObject"
 			],
 			"Effect": "Allow",
 			"Resource": [
-				"arn:aws:s3:::hive"
-			],
-			"Condition": {
-				"StringLike": {
-					"s3:prefix": [
-						"warehouse/${aws:username}-warehouse/*"
-					]
-				}
-			}
+				"arn:aws:s3:::hive/warehouse/*"
+			]
 		},
 		{
-			"Sid": "AllowUseeOn-Warehouse",
+			"Sid": "AllowUserToReadWriteDataInTheirSchema",
 			"Action": [
-				"s3:*"
+				"s3:PutObject",
+				"s3:GetObject"
 			],
 			"Effect": "Allow",
 			"Resource": [
-				"arn:aws:s3:::hive/warehouse/${aws:username}-warehouse/*"
+				"arn:aws:s3:::hive/warehouse/${aws:username}_schema/*"
 			]
 		}
 	]

@@ -1,7 +1,7 @@
 <configuration>
     <property>
         <name>hive.metastore.uris</name>
-        <value>thrift://host.docker.internal:9083</value> <!-- Accesing trough localhost to woid docker compose adding _wba-netwrok in hostname -->
+        <value>thrift://hive-metastore:9083</value> <!-- Accesing trough localhost to woid docker compose adding _wba-netwrok in hostname -->
         <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
     </property>
     <property>
@@ -10,7 +10,7 @@
     </property>
     <property>
         <name>metastore.warehouse.dir</name>
-        <value>s3a://hive/warehouse/</value>
+        <value>s3a://hive/warehouse</value>
     </property>
     <property>
         <name>fs.s3a.impl</name>

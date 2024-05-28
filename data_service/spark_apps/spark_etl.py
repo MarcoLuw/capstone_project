@@ -10,17 +10,13 @@ def main(username):
         username,
     )
     
-	mc = get_minio_client(username)
-	
-    
-	
-
+    mc = get_minio_client(username)
 
 
 if __name__ == "__main__":
 
     if len(sys.argv) > 0:
-		username = sys.argv[1]
+        username = sys.argv[1]
 	
 	
 	
