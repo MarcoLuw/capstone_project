@@ -248,7 +248,7 @@ shopee_raw_schema_columns = [
     "Quốc gia", "Ghi chú"
 ]
 
-shopee_silver_schema = StructType(
+shopee_bronze_schema = StructType(
 [
 	StructField("order_number", StringType(), True),
 	StructField("order_date", DateType(), True),

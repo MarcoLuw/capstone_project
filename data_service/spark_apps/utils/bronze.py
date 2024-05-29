@@ -13,7 +13,7 @@ from typing import List
 from utils.schema_config import (
 	shopee_raw_schema_columns, 
     default_shopee_column_rename_mapping,
-    shopee_silver_schema,
+    shopee_bronze_schema,
     default_kpim_schema
 )
 
@@ -27,15 +27,15 @@ class Bronze:
         self.mc = minio_client
         self.file_list = []
         self.source_path = f's3a://{username}'
-        self.__create_silver_db()
+        self.__create_bronze_db()
 
-    def __create_silver_db(self):
-        sql_ddl = f"CREATE DATABASE IF NOT EXISTS silver_{self.username}"
+    def __create_bronze_db(self):
+        sql_ddl = f"CREATE DATABASE IF NOT EXISTS bronze_{self.username}"
         self.spark.sql(sql_ddl)
 
     def run(self):
         renamed_raw_df = self.load_raw_data()
-        # Merge raw_df to silver schema
+        # Merge raw_df to bronze schema
         self.df.printSchema()
         self.append_raw_to_self(renamed_raw_df)
         # write to delta lake format
@@ -52,7 +52,7 @@ class Bronze:
             
             csv_files = [file for file in self.file_list if file.endswith('.csv')]
             self.source, self.matching_info = self.__extract_matching_info()   
-            self.df = self.__create_silver_df()
+            self.df = self.__create_bronze_df()
             df_list = []
             for file in csv_files:
                 temp_df = self.spark.read.csv(file, header=True, inferSchema=True)
@@ -76,7 +76,7 @@ class Bronze:
         return df
     
     def write_to_delta_upsert(self):
-        output_delta_path = f's3a://{self.username}/silver/{self.source}_sales'
+        output_delta_path = f's3a://{self.username}/bronze/{self.source}_sales'
         print(f"CREATE TABLE IF NOT EXISTS {self.source}_sales USING DELTA LOCATION '{output_delta_path}'")
         try:
             # Add year and month columns
@@ -105,7 +105,7 @@ class Bronze:
                     # If the table does not exist, write the data for the first time
                     month_df.write.format("delta").partitionBy("year", "month").mode("overwrite").save(output_delta_path)
                     # Resgiter to metastore
-                    self.spark.sql(f"USE silver_{self.username}")
+                    self.spark.sql(f"USE bronze_{self.username}")
                     create_table_sql = f"CREATE TABLE IF NOT EXISTS {self.source}_sales USING DELTA LOCATION '{output_delta_path}'"
                     self.spark.sql(create_table_sql)
 
@@ -172,9 +172,9 @@ class Bronze:
         json_data = json_df.collect()[0].asDict()
         return json_data.get('source', ''), json_data.get('matching_result', {})
 
-    def __create_silver_df(self):
+    def __create_bronze_df(self):
         if self.source == 'shopee':
-            schema = shopee_silver_schema
+            schema = shopee_bronze_schema
         return self.spark.createDataFrame(self.spark.sparkContext.emptyRDD(), schema)
 
     def __validate_schema(self, df: DataFrame) -> bool:

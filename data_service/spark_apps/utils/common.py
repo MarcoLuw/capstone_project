@@ -32,6 +32,7 @@ def get_spark_session(appname,
     return spark
 
 def get_minio_client(username):
+    print(MINIO_ENDPOINT, MINIO_SECRET_KEY)
     try:
         minio_client = Minio(
             endpoint=MINIO_ENDPOINT,
