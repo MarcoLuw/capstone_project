@@ -10,6 +10,7 @@ RUN apt-get update && \
       curl \
       vim \
       unzip \
+      zip \
       rsync \
       openjdk-11-jdk \
       build-essential \
@@ -43,8 +44,8 @@ SPARK_WORKER_PORT=7000 \
 SPARK_MASTER="spark://spark-master:7077" \
 SPARK_MASTER_HOST=spark-master \
 SPARK_WORKLOAD="master" \
-PYSPARK_PYTHON=python3
-ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
+PYSPARK_PYTHON=python3 \
+PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
 
 EXPOSE 8080 7077 7000
 
