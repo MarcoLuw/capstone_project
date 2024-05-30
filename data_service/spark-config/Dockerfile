@@ -24,7 +24,7 @@ ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
 ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
 
 RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
-WORKDIR ${SPARK_HOME}xww
+WORKDIR ${SPARK_HOME}
 
 RUN wget --no-verbose -O apache-spark.tgz "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" \
 && mkdir -p /opt/spark \

@@ -125,8 +125,8 @@ services:
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
-      - PYSPARK_DRIVER_PYTHON=jupyter
-      - PYSPARK_DRIVER_PYTHON_OPTS=jupyter notebook --no-browser --port=8889 --allow-root --ip=0.0.0.0
+      - PYSPARK_DRIVER_PYTHON=python3
+      # - PYSPARK_DRIVER_PYTHON_OPTS=jupyter notebook --no-browser --port=8889 --allow-root --ip=0.0.0.0
     networks:
       - data-services-network
 

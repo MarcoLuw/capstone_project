@@ -27,6 +27,9 @@ def get_spark_session(appname,
 			 .config("spark.eventLog.dir", f"s3a://{user_bucket}/logging/spark-events")
              .config("spark.history.fs.logDirectory", f"s3a://{user_bucket}/logging/spark-events")
              .config("spark.sql.files.ignoreMissingFiles", "true")
+             .config("spark.jars.excludes", "com.amazonaws:aws-java-sdk-bundle")
+             .config("spark.driver.extraClassPath", "/opt/spark/jars/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar") \
+             .config("spark.executor.extraClassPath", "/opt/spark/jars/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar") \
              .enableHiveSupport()
              .getOrCreate())
     return spark
