@@ -12,39 +12,48 @@ from utils.schema_config import (
 )
 from typing import List
 
+import logging
+
 class Silver:
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+    logger = logging.getLogger(__name__)
 
     def __init__(self, spark, username, source):
         self.spark = spark
         self.username = username
-        self.bronze_df = self.__read_bronze_data()
+        # self.bronze_df = self.__read_bronze_data()
         self.source = source
         self.quality_issues = []
 
     def run(self):
+        self.logger.info("Starting ETL process.")
+        self.spark.sql(f"CREATE DATABASE IF NOT EXISTS silver_{self.username}")
         transformed_df = self.transform()
         if self.__ensure_data_quality(transformed_df):
             self.__write_to_silver(transformed_df)
         else:
             self.__report_quality_issues()
 
-    def __read_bronze_data(self):
-        bronze_table_path = f"s3a://{self.username}/bronze/{self.source}_sales"
-        df = self.spark.read \
-                         .format("delta") \
-                         .load(bronze_table_path)
-        if df.schema == shopee_bronze_schema:
-            return df
-        else:
-            raise ValueError("Schema mismatch for the Bronze table data.")
-
+    # def __read_bronze_data(self):
+    #     bronze_table_path = f"s3a://{self.username}/bronze/{self.source}_sales"
+    #     logger.info(f"Reading bronze data from {bronze_table_path}.")
+    #     df = self.spark.read.format("delta").load(bronze_table_path)
+    #     if df.schema == shopee_bronze_schema:
+    #         logger.info("Bronze data schema validated.")
+    #         return df
+    #     else:
+    #         logger.error("Schema mismatch for the Bronze table data.")
+    #         raise ValueError("Schema mismatch for the Bronze table data.")
 
     def transform(self):
         if self.source == 'shopee':
+            self.logger.info("Transforming Shopee data.")
             return self.__shopee_transform()
         
     def __shopee_transform(self):
-        # Select, rename and transform data types
+        self.logger.info("Starting Shopee data transformation.")
         self.spark.sql(f"USE bronze_{self.username}")
         table = f"bronze_{self.username}.shopee_sales"
         query = f"""
@@ -77,6 +86,7 @@ class Silver:
         """
 
         sql_transformed_df = self.spark.sql(query)
+        self.logger.info("Shopee data transformed using SQL query.")
 
         # Clean data
         cleaned_df = sql_transformed_df \
@@ -108,9 +118,11 @@ class Silver:
         # Format order_date to 'yyyy-MM-dd'
         transformed_df = transformed_df.withColumn('order_date', date_format(col('order_date'), 'yyyy-MM-dd'))
 
+        self.logger.info("Shopee data transformation completed.")
         return transformed_df
     
     def __ensure_data_quality(self, df: DataFrame) -> bool:
+        self.logger.info("Starting data quality checks.")
         quality_checks_passed = True
         
         # Example quality checks:
@@ -120,7 +132,9 @@ class Silver:
         for column in null_checks:
             null_count = df.filter(col(column).isNull()).count()
             if null_count > 0:
-                self.quality_issues.append(f"Column '{column}' has {null_count} null values.")
+                issue = f"Column '{column}' has {null_count} null values."
+                self.quality_issues.append(issue)
+                self.logger.warning(issue)
                 quality_checks_passed = False
 
         # Check for negative values in numerical columns
@@ -128,7 +142,9 @@ class Silver:
         for column in negative_checks:
             negative_count = df.filter(col(column) < 0).count()
             if negative_count > 0:
-                self.quality_issues.append(f"Column '{column}' has {negative_count} negative values.")
+                issue = f"Column '{column}' has {negative_count} negative values."
+                self.quality_issues.append(issue)
+                self.logger.warning(issue)
                 quality_checks_passed = False
 
         # Check for invalid date ranges
@@ -136,17 +152,21 @@ class Silver:
         for column in date_checks:
             invalid_dates_count = df.filter(col(column) > lit("2100-01-01")).count()
             if invalid_dates_count > 0:
-                self.quality_issues.append(f"Column '{column}' has {invalid_dates_count} invalid future dates.")
+                issue = f"Column '{column}' has {invalid_dates_count} invalid future dates."
+                self.quality_issues.append(issue)
+                self.logger.warning(issue)
                 quality_checks_passed = False
 
         # Add additional quality checks as needed
 
+        self.logger.info("Data quality checks completed.")
         return quality_checks_passed
 
     def __write_to_silver(self, df: DataFrame):
         silver_table_path = f's3a://{self.username}/silver/{self.source}_sales_silver'
         silver_table = f"silver_{self.username}.{self.source}_sales_silver"
         try: 
+            self.logger.info(f"Writing data to Silver at {silver_table_path}.")
             if DeltaTable.isDeltaTable(self.spark, silver_table_path):
                 delta_table = DeltaTable.forPath(self.spark, silver_table_path)
                 delta_table.alias("tgt").merge(
@@ -157,13 +177,12 @@ class Silver:
                 df.write.format("delta").mode("overwrite").save(silver_table_path)
 
             self.spark.sql(f"CREATE TABLE IF NOT EXISTS {silver_table} USING DELTA LOCATION '{silver_table_path}'")
-            print("Data has been successfully loaded to Silver.")
+            self.logger.info("Data has been successfully loaded to Silver.")
         except Exception as e:
-            # Handle the error appropriately
-            print("Error occurred while load data to Silver:", str(e))
+            self.logger.error("Error occurred while loading data to Silver:", exc_info=True)
 
     def __report_quality_issues(self):
         # Report quality issues (e.g., log to a file, print to console, etc.)
-        print("Data quality issues found:")
+        self.logger.info("Data quality issues found:")
         for issue in self.quality_issues:
-            print(issue)
+            self.logger.error(issue)
