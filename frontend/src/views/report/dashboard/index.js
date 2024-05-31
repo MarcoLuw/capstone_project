@@ -352,13 +352,13 @@ const DashDefault = () => {
             const fieldMap = createFieldMap(matchingResult);
 
             setVisualList([
-                { width: 4, height: '5px', title: 'Total Sales', type: 'Card', id: 'totalsale', data: {}, fields: { field: fieldMap['total_sale'] || '', agg: 'SUM' } },
+                { width: 4, height: '5px', title: 'Total Sales', type: 'Card', id: 'totalsale', data: {}, fields: { field: fieldMap['sales_amount'] || '', agg: 'SUM' } },
                 { width: 4, height: '5px', title: 'Total Orders', type: 'Card', id: 'totalorder', data: {}, fields: { field: fieldMap['order_number'] || '', agg: 'DISTINCT' } },
                 { width: 4, height: '5px', title: 'Total Quantity', type: 'Card', id: 'totalquantity', data: {}, fields: { field: fieldMap['order_quantity'] || '', agg: 'SUM' } },
-                { width: 12, height: '360px', title: 'Time Series', type: 'Linechart', id: 'column-chart', data: {}, fields: { categoryfield: fieldMap['order_date'] || '', valuefield: fieldMap['total_sale'] || '', agg: 'SUM', sort_category: 'ASC', top: 120 } },
-                { width: 6, height: '360px', title: 'Top Product', type: 'Barchart', id: 'bar-chart', data: {}, fields: { categoryfield: fieldMap['product_name'] || '', valuefield: fieldMap['total_sale'] || '', agg: 'SUM', sort_value: 'DESC', top: 10 } },
-                { width: 6, height: '360px', title: 'Segment of Category', type: 'Piechart', id: 'pie-chart', data: {}, fields: { categoryfield: fieldMap['product_category'] || '', valuefield: fieldMap['total_sale'] || '', agg: 'SUM', sort_value: 'DESC' } },
-                { width: 12, height: '360px', title: 'Product Detail', type: 'Table', id: 'table', data: {}, fields: [fieldMap['order_date'] || '', fieldMap['product_name'] || '', fieldMap['product_category'] || '', fieldMap['order_quantity'] || '', fieldMap['total_sale'] || ''] }
+                { width: 12, height: '360px', title: 'Time Series', type: 'Linechart', id: 'column-chart', data: {}, fields: { categoryfield: fieldMap['order_date'] || '', valuefield: fieldMap['sales_amount'] || '', agg: 'SUM', sort_category: 'ASC', top: 120 } },
+                { width: 6, height: '360px', title: 'Top Product', type: 'Barchart', id: 'bar-chart', data: {}, fields: { categoryfield: fieldMap['product_name'] || '', valuefield: fieldMap['sales_amount'] || '', agg: 'SUM', sort_value: 'DESC', top: 10 } },
+                { width: 6, height: '360px', title: 'Segment of Category', type: 'Piechart', id: 'pie-chart', data: {}, fields: { categoryfield: fieldMap['product_category'] || '', valuefield: fieldMap['sales_amount'] || '', agg: 'SUM', sort_value: 'DESC' } },
+                { width: 12, height: '360px', title: 'Product Detail', type: 'Table', id: 'table', data: {}, fields: [fieldMap['order_date'] || '', fieldMap['product_name'] || '', fieldMap['product_category'] || '', fieldMap['order_quantity'] || '', fieldMap['sales_amount'] || ''] }
             ]);
             setLoading(true);
         }

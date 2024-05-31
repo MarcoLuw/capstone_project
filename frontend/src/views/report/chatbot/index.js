@@ -13,7 +13,7 @@ const get_chat_bot_result = async (prompt) => {
         return response.data;
     } catch (error) {
         console.error('Failed to fetch data from API:', error);
-        return { message: "Failed to fetch data", data: [] };  // Trả về thông điệp lỗi và mảng rỗng nếu có lỗi
+        return { message: "Your request could not be completed. Please try again.", data: [] };  // Trả về thông điệp lỗi và mảng rỗng nếu có lỗi
     }
 };
 

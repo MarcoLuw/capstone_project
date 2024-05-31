@@ -80,24 +80,39 @@ NUMERIC_FIELDS = [
 SCHEMAS_JSON = {
     "tables": {
         "fact_ecommerce_sales": [
-            {"field": "order_date", "description": "The date the order was placed"},
             {"field": "order_number", "description": "Unique identifier for the order"},
-            {"field": "order_line_number", "description": "Unique identifier for the order line"},
+            {"field": "order_date", "description": "The date the order was placed"},
+            {"field": "ship_date", "description": "The date the order was shipped"},
             {"field": "order_quantity", "description": "Number of items ordered"},
             {"field": "unit_price", "description": "Price per unit of the product"},
-            {"field": "total_sale", "description": "Total sales amount"}
+            {"field": "unit_discount", "description": "Discount applied per unit"},
+            {"field": "sales_amount", "description": "Total sales amount"},
+            {"field": "payment_date", "description": "The date the payment was made"}
         ],
         "dim_product": [
             {"field": "product_key", "description": "Unique key for the product"},
             {"field": "product_name", "description": "Name of the product"},
-            {"field": "product_subcategory", "description": "Subcategory of the product"},
-            {"field": "product_category", "description": "Category of the product"}
+            {"field": "product_category", "description": "Category name of the product"},
+            {"field": "price", "description": "Price of the product"},
+            {"field": "weight", "description": "Weight of the product"}
+        ],
+        "dim_date": [
+            {"field": "day", "description": "Day of the month"},
+            {"field": "month", "description": "Month of the year"},
+            {"field": "year", "description": "Year"},
+            {"field": "quarter", "description": "Quarter of the year"},
+            {"field": "day_of_week", "description": "Day of the week"},
+            {"field": "day_of_week_number", "description": "Number of the day in the week"}
+        ],
+        "dim_promotion": [
+            {"field": "shopee_discount_code", "description": "Discount code applied on Shopee"}
+        ],
+        "dim_shipment": [
+            {"field": "tracking_code", "description": "Tracking code of the shipment"},
+            {"field": "shipping_company", "description": "Company responsible for shipping"}
         ],
         "dim_customer": [
-            {"field": "customer_key", "description": "Unique key for the customer"},
-            {"field": "first_name", "description": "Customer's first name"},
-            {"field": "last_name", "description": "Customer's last name"},
-            {"field": "full_name", "description": "Customer's full name"}
+            {"field": "customer_name", "description": "Name of the customer"}
         ]
     }
 }
@@ -151,7 +166,7 @@ class GetInfoFieldView(APIView):
         
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
-        COLUMN_MAPPING = TEMP_MAPPING
+        COLUMN_MAPPING = matching_result
 
         # Map the field using COLUMN_MAPPING
         if field in COLUMN_MAPPING:
@@ -218,7 +233,7 @@ class GetAllColumnsView(APIView):
 
 
 
-class GetMappingColumnsView(APIView):
+class GetMappingColumnsView(APIView):   
     def get(self, request):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
@@ -334,7 +349,7 @@ class GetCardView(APIView):
         # Load COLUMN_MAPPING from cache
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
-        COLUMN_MAPPING = TEMP_MAPPING
+        COLUMN_MAPPING = matching_result
 
         # Get the field and aggregation from the request
         field = request.GET.get('field', None)
@@ -445,7 +460,7 @@ class GetBCPView(APIView):
         
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
-        COLUMN_MAPPING = TEMP_MAPPING
+        COLUMN_MAPPING = matching_result
         
         categoryfield = request.GET.get('categoryfield', None)
         valuefield = request.GET.get('valuefield', None)
@@ -582,7 +597,7 @@ class GetDataTableView(APIView):
         # Load COLUMN_MAPPING from cache
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
-        COLUMN_MAPPING = TEMP_MAPPING
+        COLUMN_MAPPING = matching_result
 
         # Map fields using COLUMN_MAPPING
         list_fields = list_field.split(',')
@@ -691,7 +706,7 @@ class GetChatBotView(APIView):
         # Load COLUMN_MAPPING from cache
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
-        COLUMN_MAPPING = json.dumps(TEMP_MAPPING, indent=4)
+        COLUMN_MAPPING = json.dumps(matching_result, indent=4)
 
         user_prompt = request.GET.get('prompt')
 

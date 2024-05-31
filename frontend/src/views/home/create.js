@@ -1,5 +1,5 @@
 import React, { useState ,useRef, useEffect} from 'react';
-import { Row, Col, Card, Form, Button, Modal, Table} from 'react-bootstrap';
+import { Row, Col, Card, Form, Button, Modal, Table, Spinner } from 'react-bootstrap';
 import PreviewData from './previewdata';
 import axios from 'axios';
 // import {InputGroup, FormControl, DropdownButton, Dropdown} from 'react-bootstrap';
@@ -15,24 +15,34 @@ const FormsElements = () => {
     const [matchingResult, setMatchingResult] = useState({});
     const [userFields, setUserFields] = useState({});
     const [updateUserFields, setUpdateUserFields] = useState({});
+    const [loading, setLoading] = useState(false);
 
     const fieldDescriptions = {
-        "order_date": "The date the order was placed",
         "order_number": "Unique identifier for the order",
-        "order_line_number": "Unique identifier for the order line",
+        "order_date": "The date the order was placed",
+        "ship_date": "The date the order was shipped",
         "order_quantity": "Number of items ordered",
         "unit_price": "Price per unit of the product",
-        "total_sale": "Total sales amount",
+        "unit_discount": "Discount applied per unit",
+        "sales_amount": "Total sales amount",
+        "payment_date": "The date the payment was made",
         "product_key": "Unique key for the product",
         "product_name": "Name of the product",
-        "product_subcategory": "Subcategory of the product",
-        "product_category": "Category of the product",
-        "customer_key": "Unique key for the customer",
-        "first_name": "Customer's first name",
-        "last_name": "Customer's last name",
-        "full_name": "Customer's full name"
+        "product_category": "Category name of the product",
+        "price": "Price of the product",
+        "weight": "Weight of the product",
+        "day": "Day of the month",
+        "month": "Month of the year",
+        "year": "Year",
+        "quarter": "Quarter of the year",
+        "day_of_week": "Day of the week",
+        "day_of_week_number": "Number of the day in the week",
+        "shopee_discount_code": "Discount code applied on Shopee",
+        "tracking_code": "Tracking code of the shipment",
+        "shipping_company": "Company responsible for shipping",
+        "customer_name": "Name of the customer"
     };
-
+    
 
     useEffect(() => {
         // Fetch column data when component mounts
@@ -51,7 +61,8 @@ const FormsElements = () => {
             const formData = new FormData();
             formData.append('file', file);
 
-    
+            setLoading(true); // Bắt đầu tải lên
+
             try {
                 const response = await axios.post('http://localhost:8000/userdb/api/import-file', formData, {
                     headers: {
@@ -59,7 +70,7 @@ const FormsElements = () => {
                     },
                     withCredentials: true
                 });
-    
+
                 if (response.data.message === "File uploaded successfully.") {
                     setData(response.data.data)
                     setShowSuccessModal(true); // Hiển thị modal thông báo thành công
@@ -67,6 +78,8 @@ const FormsElements = () => {
                 }
             } catch (error) {
                 console.error("There was an error uploading the file:", error);
+            } finally {
+                setLoading(false); // Kết thúc tải lên
             }
         }
     };
@@ -104,6 +117,7 @@ const FormsElements = () => {
     };
 
     const handleApplyClick = async () => {
+        setLoading(true);
         try {
             await axios.post('http://localhost:8000/data_analysis/api/updateColumns', updateUserFields, {
                 withCredentials: true
@@ -112,9 +126,10 @@ const FormsElements = () => {
             setMatchingResult({});
             setUserFields({});
             setUpdateUserFields({});
-
         } catch (error) {
             console.error("Error updating column mapping:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -172,41 +187,58 @@ const FormsElements = () => {
                             <Card.Title as="h5">Preview Data</Card.Title>
                         </Card.Header>
                         <Card.Body style={{ padding: 0, marginTop: '-2rem' }}>
-                            <PreviewData data={data} height="1200px" />
-                        </Card.Body> 
-                        
+                            {loading ? (
+                                <div className="d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+                                    <Spinner animation="border" role="status">
+                                        <span className="sr-only">Loading...</span>
+                                    </Spinner>
+                                </div>
+                            ) : (
+                                <PreviewData data={data} height="1200px" />
+                            )}
+                        </Card.Body>
                     </Card>
 
                     <Card>
-                        <Card.Header>
-                            <Card.Title as="h5">Mapping Fields</Card.Title>
-                        </Card.Header>
-                        <Card.Body>
-                            <Table striped bordered hover>
-                                <thead>
-                                    <tr>
-                                        <th>Default Field</th>
-                                        <th>Description</th>
-                                        <th>User Field</th>
+                <Card.Header>
+                    <Card.Title as="h5">Mapping Fields</Card.Title>
+                </Card.Header>
+                <Card.Body>
+                    {loading ? (
+                        <div className="d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+                            <Spinner animation="border" role="status">
+                                <span className="sr-only">Loading...</span>
+                            </Spinner>
+                        </div>
+                    ) : (
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>Default Field</th>
+                                    <th>Description</th>
+                                    <th>User Field</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.keys(matchingResult).map((defaultField, index) => (
+                                    <tr key={index}>
+                                        <td>{matchingResult[defaultField].field}</td>
+                                        <td>{fieldDescriptions[matchingResult[defaultField].field] || `Description for ${matchingResult[defaultField].field}`}</td>
+                                        <td>
+                                            <Form.Control as="select" value={userFields[defaultField]} onChange={(e) => handleFieldChange(defaultField, e)}>
+                                                {columns.map((col, idx) => (
+                                                    <option key={idx} value={col}>{col}</option>
+                                                ))}
+                                            </Form.Control>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {Object.keys(matchingResult).map((defaultField, index) => (
-                                        <tr key={index}>
-                                            <td>{matchingResult[defaultField].field}</td>
-                                            <td>{fieldDescriptions[matchingResult[defaultField].field] || `Description for ${matchingResult[defaultField].field}`}</td>
-                                            <td>
-                                                <Form.Control as="select" value={userFields[defaultField]} onChange={(e) => handleFieldChange(defaultField, e)}>
-                                                    {columns.map((col, idx) => (
-                                                        <option key={idx} value={col}>{col}</option>
-                                                    ))}
-                                                </Form.Control>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                            <Button variant="primary" onClick={handleApplyClick}>Apply</Button>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+                            <Button variant="primary" onClick={handleApplyClick} disabled={loading}>
+                                {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Apply'}
+                            </Button>
                         </Card.Body>
                     </Card>
                 </Col>
