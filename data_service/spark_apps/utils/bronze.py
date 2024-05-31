@@ -28,6 +28,14 @@ class Bronze:
         self.file_list = []
         self.source_path = f's3a://{username}'
         self.__create_bronze_db()
+        self.log_spark_config()
+
+    def log_spark_config(self):
+        # Retrieve and log Spark configurations
+        spark_config = self.spark.sparkContext.getConf().getAll()
+        self.logger.info("Spark Configurations:")
+        for config in spark_config:
+            self.logger.info(f"{config[0]}: {config[1]}")
 
     def __create_bronze_db(self):
         sql_ddl = f"CREATE DATABASE IF NOT EXISTS bronze_{self.username}"

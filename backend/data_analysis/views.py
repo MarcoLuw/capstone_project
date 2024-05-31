@@ -85,6 +85,11 @@ NUMERIC_FIELDS = [
 SCHEMAS_JSON = {
     "tables": {
         "fact_ecommerce_sales": [
+            {"field": "date_key", "description": "Foreign key to dim_date"},
+            {"field": "customer_key", "description": "Foreign key to dim_customer"},
+            {"field": "product_key", "description": "Foreign key to dim_product"},
+            {"field": "promotion_key", "description": "Foreign key to dim_promotion"},
+            {"field": "shipment_key", "description": "Foreign key to dim_shipment"},
             {"field": "order_number", "description": "Unique identifier for the order"},
             {"field": "order_date", "description": "The date the order was placed"},
             {"field": "ship_date", "description": "The date the order was shipped"},
@@ -95,13 +100,14 @@ SCHEMAS_JSON = {
             {"field": "payment_date", "description": "The date the payment was made"}
         ],
         "dim_product": [
-            {"field": "product_key", "description": "Unique key for the product"},
+            {"field": "product_key", "description": "Unique key for the product dimensional table"},
             {"field": "product_name", "description": "Name of the product"},
             {"field": "product_category", "description": "Category name of the product"},
             {"field": "price", "description": "Price of the product"},
             {"field": "weight", "description": "Weight of the product"}
         ],
         "dim_date": [
+            {"field": "date_key", "description": "Key of date dimensional table"},
             {"field": "day", "description": "Day of the month"},
             {"field": "month", "description": "Month of the year"},
             {"field": "year", "description": "Year"},
@@ -110,13 +116,15 @@ SCHEMAS_JSON = {
             {"field": "day_of_week_number", "description": "Number of the day in the week"}
         ],
         "dim_promotion": [
-            {"field": "shopee_discount_code", "description": "Discount code applied on Shopee"}
+            {"field": "promotion_key", "description": "Surrogate key of promotion dimensional table"},
+            {"field": "promotion", "description": "Promotion code"}
         ],
         "dim_shipment": [
-            {"field": "tracking_code", "description": "Tracking code of the shipment"},
+            {"field": "shipment_key", "description": "Surrogate key of shipment dimensional table"},
             {"field": "shipping_company", "description": "Company responsible for shipping"}
         ],
         "dim_customer": [
+            {"field": "customer_key", "description": "Surrogate key of customer dimensional table"},
             {"field": "customer_name", "description": "Name of the customer"}
         ]
     }
@@ -427,7 +435,7 @@ class UpdateColumnMappingView(APIView):
                 check=True
             )
         spark_host = result.stdout.strip()
-        flag_etl = spark_utils.main(user.username, spark_host)
+        flag_etl = spark_utils.main(user.username)
         if not flag_etl:
             return Response({"message": "Error triggering ETL."}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
