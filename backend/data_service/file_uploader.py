@@ -33,7 +33,8 @@ def uploadFile(filepath: str, username: str):
     bucket_name = username
     source_file = filepath  # The source file path
     object_name = filepath.split('/')[-1]  # The object name inside the bucket
-    logging.info(f'Set the object name as {object_name}')
+    uploaded_object_name = f'raw/{object_name}'
+    logging.info(f'Set the object name as {uploaded_object_name}')
 
     # Make the bucket if it doesn't exist.
     found = client.bucket_exists(bucket_name)
@@ -45,8 +46,8 @@ def uploadFile(filepath: str, username: str):
 
     # Upload the file with the name object_name to the bucket.
     try:
-        result = client.fput_object(bucket_name, object_name, source_file)
-        logging.info(f'Uploaded {filepath} to {bucket_name} as {object_name}')
+        result = client.fput_object(bucket_name, uploaded_object_name, source_file)
+        logging.info(f'Uploaded {filepath} to {bucket_name} as {uploaded_object_name}')
         return result
     except S3Error as exc:
         logging.error("Error occurred: ", exc)

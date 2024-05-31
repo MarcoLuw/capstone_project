@@ -1,6 +1,7 @@
 .venv/
 data/
 backend/db/backups/
+backend/node_modules/
 storage/
 user_db/
 data_service/capstone-project/
@@ -12,3 +13,5 @@ data_service/spark_apps/utils/__pycache__
 data_service/spark_apps/.ipynb_checkpoints/
 data_service/spark_apps/test_script.ipynb
 backend/data_service/minio-data/
+backend/data_service/spark_command.sh
+.vscode

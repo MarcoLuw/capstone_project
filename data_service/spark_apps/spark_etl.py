@@ -21,7 +21,7 @@ def main(username):
 
     # mc = get_minio_client(username)
     MINIO_ENDPOINT = "minio:9000/"
-    MINIO_ACCESS_KEY = "kayden"
+    MINIO_ACCESS_KEY = username
     MINIO_SECRET_KEY = "password"
 
     mc = Minio(

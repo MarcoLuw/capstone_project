@@ -50,7 +50,8 @@ RUN apt-get install -y --no-install-recommends \
     python3-dev \
     musl-dev \
     unixodbc-dev \
-    docker.io
+    docker.io \
+    openssh-server
 
 # Install the requirements
 RUN pip install --no-cache-dir -r requirements.txt
