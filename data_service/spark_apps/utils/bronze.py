@@ -99,15 +99,15 @@ class Bronze:
                     # Perform upsert using merge
                     delta_table.alias("tgt").merge(
                         month_df.alias("src"),
-                        "tgt.order_number = src.order_number"
+                        "tgt.order_number = src.order_number AND tgt.product_key = src.product_key"
                     ).whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
                 else:
                     # If the table does not exist, write the data for the first time
                     month_df.write.format("delta").partitionBy("year", "month").mode("overwrite").save(output_delta_path)
                     # Resgiter to metastore
-                    self.spark.sql(f"USE bronze_{self.username}")
-                    create_table_sql = f"CREATE TABLE IF NOT EXISTS {self.source}_sales USING DELTA LOCATION '{output_delta_path}'"
-                    self.spark.sql(create_table_sql)
+                self.spark.sql(f"USE bronze_{self.username}")
+                create_table_sql = f"CREATE TABLE IF NOT EXISTS {self.source}_sales USING DELTA LOCATION '{output_delta_path}'"
+                self.spark.sql(create_table_sql)
 
             print("Data has been successfully upserted to Delta Lake incrementally.")
         except Exception as e:

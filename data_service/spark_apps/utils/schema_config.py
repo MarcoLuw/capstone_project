@@ -117,7 +117,7 @@ fact_e_commerce_sales = {
 		"channel_key": "IntegerType",
 		"store_key": "IntegerType",
 		"promotion_key": "IntegerType",
-		"order_id": "StringType",
+		"order_number": "StringType",
 		"order_quantity": "IntegerType",
 		"unit_price": "FloatType",
 		"unit_cost": "FloatType",
@@ -141,6 +141,33 @@ fact_e_commerce_sales = {
 	}
 }
 
+shopee_fact_sales = {
+	"fields": {
+		"sale_key": "IntegerType",
+		"date_key": "IntegerType",
+		"time_key": "IntegerType",
+		"product_key": "IntegerType",
+		"customer_key": "IntegerType",
+		"promotion_key": "IntegerType",
+		"order_number": "StringType",
+		"order_quantity": "IntegerType",
+		"unit_price": "FloatType",
+		"unit_cost": "FloatType",
+		"unit_discount": "FloatType",
+		"sales_amount": "DecimalType",
+		"order_date": "DateType",
+		"ship_date": "DateType",
+		"payment_date": "DateType"
+	},
+	"primary_key": ["sale_key"],
+	"foreign_keys": {
+		"date_key": "dim_date",
+		"time_key": "dim_time",
+		"product_key": "dim_product",
+		"customer_key": "dim_customer",
+		"promotion_key": "dim_promotion"
+	}
+}
 
 # Column mappings
 ## KPIM
@@ -210,7 +237,7 @@ default_shopee_column_rename_mapping = {
     'Người bán trợ giá': 'seller_discount',
     'Được Shopee trợ giá': 'shopee_discount',
     'Giá ưu đãi': 'unit_discount',
-    'Số lượng': 'ordered_quantity',
+    'Số lượng': 'order_quantity',
     'Returned quantity': 'returned_quantity',  # This needs translation
     'Tổng giá bán (sản phẩm)': 'total_product_price',
     'Tổng giá trị đơn hàng (VND)': 'total_order_price',
@@ -264,7 +291,7 @@ shopee_bronze_schema = StructType(
 	StructField("weight", DoubleType(), True),
 	StructField("category_sku", StringType(), True),
 	StructField("category_name", StringType(), True),
-	StructField("ordered_quantity", IntegerType(), True),
+	StructField("order_quantity", IntegerType(), True),
 	StructField("unit_price", FloatType(), True),
 	StructField("seller_discount", FloatType(), True),
 	StructField("shopee_discount", FloatType(), True),
