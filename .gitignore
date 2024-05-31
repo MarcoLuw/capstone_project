@@ -6,6 +6,7 @@ user_db/
 data_service/capstone-project/
 data_service/minio-data/
 data_service/minio-data/*
+data_service/postgres-data/
 data_service/hadoop-libs/
 data_service/hadoop-libs/*
 data_service/spark_apps/utils/__pycache__
