@@ -10,7 +10,6 @@ dim_date = {
 		"year": "IntegerType",
 		"day_of_week": "StringType",
 		"day_of_week_number": "ByteType",
-		"year_month": "StringType"
 	},
 	"primary_key": ["date_key"]
 } 
@@ -57,8 +56,7 @@ dim_product = {
 dim_customer = {
 	"fields": {
 		"customer_key": "IntegerType",
-		"first_name": "StringType",
-		"last_name": "StringType",
+		"customer_name": "StringType",
 		"loyal_group": "StringType",
 		"birthday": "DateType",
 		"gender": "StringType",
@@ -105,6 +103,14 @@ dim_promotion = {
 		"max_quantity": "IntegerType"
 	},
 	"primary_key": ["promotion_key"]
+}
+
+dim_shipment = {
+	"fields": {
+		"shipment_key": "StringType",
+		"shipping_company": "StringType"
+	},
+	"primary_key": ["shipment_key"]
 }
 
 fact_e_commerce_sales = {
@@ -299,7 +305,6 @@ shopee_bronze_schema = StructType(
 	StructField("returned_quantity", IntegerType(), True),
 	StructField("total_product_price", DoubleType(), True),
 	StructField("total_order_price", DoubleType(), True),
-	StructField("shop_discount_code", StringType(), True),
 	StructField("shopee_discount_code", StringType(), True),
 	StructField("estimated_shipping_fee", FloatType(), True),
 	StructField("shipping_fee_paid_by_buyer", FloatType(), True),

@@ -26,10 +26,12 @@ services:
     networks:
       - backendnetwork
 
-  backend: 
-    build: 
+  backend:
+    build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        TARGETPLATFORM: linux/amd64
     container_name: django-backend
     deploy:
       resources:
@@ -42,7 +44,7 @@ services:
       - backendnetwork
     volumes:
       - './backend:/app/backend'
-      - '//var/run/docker.sock:/var/run/docker.sock'
+      - '/var/run/docker.sock:/var/run/docker.sock'
     depends_on:
       - db
   
@@ -154,7 +156,6 @@ services:
       - ./data_service/hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
       - ./data_service/hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
       - ./data_service/spark-config/conf/master/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      # - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./data_service/hadoop-libs/delta-core_2.12-2.4.0.jar:/opt/spark/jars/delta-core_2.12-2.4.0.jar
       - ./data_service/hadoop-libs/delta-storage-2.4.0.jar:/opt/spark/jars/delta-storage-2.4.0.jar
     environment:
@@ -186,7 +187,6 @@ services:
     volumes:
       - ./data_service/spark_apps:/opt/spark_apps
       - ./data_service/spark-config/conf/worker/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      # - ./spark-config/conf/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./data_service/hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
       - ./data_service/hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
       - ./data_service/hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
@@ -194,24 +194,6 @@ services:
       - ./data_service/hadoop-libs/delta-storage-2.4.0.jar:/opt/spark/jars/delta-storage-2.4.0.jar
     networks:
       - backendnetwork
-
-  # spark-history-server:
-  #   container_name: spark-history
-  #   image: cluster-apache-spark:3.4.2
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: "0.5"
-  #   depends_on:
-  #     - spark-master
-  #   volumes:
-  #     - ./data_service/spark-config/conf/history/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-  #   environment:
-  #     - SPARK_NO_DAEMONIZE=true
-  #   ports:
-  #     - '18080:18080'
-  #   networks:
-  #     - backendnetwork
 
   trino:
     hostname: trino

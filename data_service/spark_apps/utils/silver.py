@@ -66,9 +66,7 @@ class Silver:
                 QUARTER(order_date) as quarter,
                 DATE_FORMAT(order_date, 'EEEE') AS day_of_week,
                 DAYOFWEEK(order_date) AS day_of_week_number,
-                shop_discount_code,
-                shopee_discount_code,
-                tracking_code,
+                shopee_discount_code as promotion,
                 shipping_company,
                 buyer_name as customer_name
             FROM {table}

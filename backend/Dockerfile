@@ -51,7 +51,8 @@ RUN apt-get install -y --no-install-recommends \
     musl-dev \
     unixodbc-dev \
     docker.io \
-    openssh-server
+    openssh-server \
+    libhdf5-dev
 
 # Install the requirements
 RUN pip install --no-cache-dir -r requirements.txt

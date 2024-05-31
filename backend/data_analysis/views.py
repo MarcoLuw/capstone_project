@@ -9,7 +9,7 @@ from datetime import datetime
 
 import userdb.views as userdbViews
 from data_service import file_uploader
-from data_service import utils
+from data_service import spark_utils
 import os
 
 import logging
@@ -412,7 +412,7 @@ class UpdateColumnMappingView(APIView):
                 check=True
             )
         spark_host = result.stdout.strip()
-        flag_etl = utils.main(user.username, spark_host)
+        flag_etl = spark_utils.main(user.username, spark_host)
         if not flag_etl:
             return Response({"message": "Error triggering ETL."}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
