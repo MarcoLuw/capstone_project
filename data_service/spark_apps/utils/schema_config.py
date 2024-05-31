@@ -117,7 +117,7 @@ fact_e_commerce_sales = {
 		"channel_key": "IntegerType",
 		"store_key": "IntegerType",
 		"promotion_key": "IntegerType",
-		"order_id": "StringType",
+		"order_number": "StringType",
 		"order_quantity": "IntegerType",
 		"unit_price": "FloatType",
 		"unit_cost": "FloatType",
@@ -141,6 +141,33 @@ fact_e_commerce_sales = {
 	}
 }
 
+shopee_fact_sales = {
+	"fields": {
+		"sale_key": "IntegerType",
+		"date_key": "IntegerType",
+		"time_key": "IntegerType",
+		"product_key": "IntegerType",
+		"customer_key": "IntegerType",
+		"promotion_key": "IntegerType",
+		"order_number": "StringType",
+		"order_quantity": "IntegerType",
+		"unit_price": "FloatType",
+		"unit_cost": "FloatType",
+		"unit_discount": "FloatType",
+		"sales_amount": "DecimalType",
+		"order_date": "DateType",
+		"ship_date": "DateType",
+		"payment_date": "DateType"
+	},
+	"primary_key": ["sale_key"],
+	"foreign_keys": {
+		"date_key": "dim_date",
+		"time_key": "dim_time",
+		"product_key": "dim_product",
+		"customer_key": "dim_customer",
+		"promotion_key": "dim_promotion"
+	}
+}
 
 # Column mappings
 ## KPIM

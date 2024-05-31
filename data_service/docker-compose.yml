@@ -75,6 +75,8 @@ services:
       interval: 1s
       timeout: 10s
       retries: 10
+    volumes:
+    - ./postgres-data:/var/lib/postgresql/data
     networks:
       - data-services-network
 
@@ -111,6 +113,7 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+      - "6066:6066"
       - "8889:8889"
     volumes:
       - ./spark_apps/:/opt/spark_apps/
