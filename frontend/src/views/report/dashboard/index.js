@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import {Modal, Row, Col, Form, Card, Button, Dropdown} from 'react-bootstrap';
+import {Modal, Row, Col, Form, Card, Button, Dropdown, Spinner} from 'react-bootstrap';
 import  MainCard from '../../../components/Card/MainCard';
 import axios from 'axios';
 
@@ -161,7 +161,8 @@ const DashDefault = () => {
     };
 
     useEffect(() => {
-        get_all_columns();
+        setLoading(true); // Set loading to true when the component is mounted
+        get_all_columns(); // Fetch columns when component mounts
     }, []);
 
     const get_info_field = async (field) => {
@@ -498,14 +499,20 @@ const DashDefault = () => {
     };
 
     const renderDashboard = () => {
-        if (loading) return <div>Loading visualizations...</div>;
-
+        if (loading) return (
+            <div className="spinner-container">
+                <Spinner animation="border" role="status" variant="primary" />
+                <div className="spinner-text">Loading visualizations...</div>
+            </div>
+        );
+    
         return visualList.map((visualization, index) => (
             <Col key={index} xl={visualization.width}>
                 {renderVisualization(visualization)}
             </Col>
         ));
     };
+    
 
 
     const updateField = (key, value) => {

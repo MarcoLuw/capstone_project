@@ -1,4 +1,19 @@
 @import 'assets/scss/style.scss';
+.spinner-container {
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.spinner-text {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #555;
+}
+
+
 .message.user {
     background-color: #f0f0f0; /* Màu nền cho tin nhắn người dùng */
     padding: 10px;

@@ -35,27 +35,75 @@ def getData(conn, start_date=None, end_date=None):
     cursor = conn.cursor()
     cmd = ""
     if start_date is None or end_date is None:
-        cmd = f"""SELECT product_key, order_date, SUM(order_quantity) AS total_quantity FROM fact_ecommerce_sales GROUP BY product_key, order_date;"""
+        cmd = f"""
+        SELECT 
+            fs.product_key, 
+            dp.product_name, 
+            fs.order_date, 
+            SUM(fs.order_quantity) AS total_quantity 
+        FROM 
+            fact_ecommerce_sales fs
+        JOIN 
+            dim_product dp ON fs.product_key = dp.product_key
+        GROUP BY 
+            fs.product_key, 
+            dp.product_name, 
+            fs.order_date;
+        """
     else:
-        cmd = f"""SELECT product_key, order_date, SUM(order_quantity) AS total_quantity FROM fact_ecommerce_sales WHERE order_date BETWEEN '{start_date}' AND '{end_date}' GROUP BY product_key, order_date;"""
+        cmd = f"""
+        SELECT 
+            fs.product_key, 
+            dp.product_name, 
+            fs.order_date, 
+            SUM(fs.order_quantity) AS total_quantity 
+        FROM 
+            fact_ecommerce_sales fs
+        JOIN 
+            dim_product dp ON fs.product_key = dp.product_key
+        WHERE 
+            fs.order_date BETWEEN '{start_date}' AND '{end_date}'
+        GROUP BY 
+            fs.product_key, 
+            dp.product_name, 
+            fs.order_date;
+        """
+    # Specify column names
     cursor.execute(cmd)
     rows = cursor.fetchall()
     conn.close()
-    df = pd.DataFrame(rows)
+    
+    # Specify column names
+    columns = ['product_key', 'product_name', 'order_date', 'total_quantity']
+    df = pd.DataFrame(rows, columns=columns)
+    
     return df
 
 def processingAndPredict(model, df: pd.DataFrame):
     # Khởi tạo DataFrame để lưu kết quả
-    results_df = pd.DataFrame(columns=['order_date', 'product_key', 'current_total_quantity', 'predict_total_quantity', 'growth'])
+    results_df = pd.DataFrame(columns=['order_date', 'product_key', 'product_name', 'current_total_quantity', 'predict_total_quantity', 'growth'])
     look_back = 3
-    # Duyệt qua các sản phẩm từ 1 đến 10 (Test trước 10 sản phẩm)
-    for product_key in range(1, 11):
+
+    # Loại bỏ cột order_date trước khi trả về
+    df_predict = df.drop(columns=['product_name'])  
+    print("df_predict", df_predict.head(10))
+    
+    # Tạo danh sách chứa tất cả các product_key
+    list_product_key = df['product_key']
+    
+    # Duyệt qua các sản phẩm trong list_product_key
+    for product_key in list_product_key[:10]:
         # Chọn một sản phẩm để phân tích
-        product_example = df[df[0] == product_key]
-        product_example = product_example.sort_values(1)
+        product_example = df_predict[df_predict['product_key'] == product_key]
+        
+        if product_example.empty:
+            continue
+        
+        product_example = product_example.sort_values('total_quantity')
 
         # Lấy dữ liệu total_quantity
-        sales_data = product_example[2].values
+        sales_data = product_example['total_quantity'].values
+        
         scaler = MinMaxScaler()
         sales_data_scaled = scaler.fit_transform(sales_data.reshape(-1, 1))
 
@@ -67,22 +115,28 @@ def processingAndPredict(model, df: pd.DataFrame):
             next_quantity = model.predict(last_data)
             last_data = np.append(last_data[:, 1:, :], next_quantity.reshape(1, 1, 1), axis=1)
 
-        # Lấy dự đoán cho ngày thứ 30 và tính toán tăng trưởng
+        # Lấy dự đoán cho ngày cuối cùng và tính toán tăng trưởng
         final_prediction = scaler.inverse_transform(next_quantity)
         last_actual = sales_data[-1]
         growth = ((final_prediction[0, 0] - float(last_actual)) / float(last_actual)) * 100
 
-        # Thêm dữ liệu vào DataFrame
+        # Lấy product_name từ DataFrame ban đầu bằng cách sử dụng product_key
+        product_name = df[df['product_key'] == product_key]['product_name'].values[0]
+
+        # Thêm dữ liệu vào DataFrame kết quả
         new_row = pd.DataFrame({
-            'order_date': [product_example[1].iloc[-1]],
+            'order_date': [product_example['order_date'].values[-1]],  # Thêm order_date vào để sắp xếp
             'product_key': [product_key],
+            'product_name': [product_name],
             'current_total_quantity': [last_actual],
             'predict_total_quantity': [final_prediction[0, 0]],
             'growth': [growth]
         })
         results_df = pd.concat([results_df, new_row], ignore_index=True)
-    # Hiển thị kết quả
+    
+    # Hiển thị kết quả và loại bỏ cột order_date
     results_df = results_df.sort_values("growth", ascending=False)
+    results_df = results_df.drop(columns=['order_date'])  # Loại bỏ cột order_date trước khi trả về
     return results_df
 
 # Create your views here.
@@ -244,9 +298,7 @@ class GetCustomerDataView(APIView):
         customer_columns = [
             "dim_customer.customer_key",
             "dim_customer.first_name",
-            "dim_customer.last_name",
-            "dim_customer.birthday",
-            "dim_customer.gender",
+            "dim_customer.last_name"
         ]
 
         # Columns to be selected from fact_ecommerce_sales

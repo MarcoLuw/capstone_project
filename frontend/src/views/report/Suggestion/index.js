@@ -134,7 +134,7 @@ const DashSuggestion = () => {
                 {!loading && (
                     <>
                         <Col key='trend-product' xl={12}>
-                            <MainCard title='Trend Product (Next Month)' isOption>
+                            <MainCard title='Predict Trend Product (Next Month)' isOption>
                                 <TablePreview data={trendProductData} />
                             </MainCard>
                         </Col>
