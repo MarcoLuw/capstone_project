@@ -5,6 +5,7 @@ from pyspark.sql import SparkSession
 from minio import Minio
 from utils.common import get_spark_session, get_minio_client
 from utils.bronze import Bronze
+from utils.silver import Silver
 
 def main(username):
     spark = get_spark_session(
@@ -33,7 +34,11 @@ def main(username):
 
     bronze = Bronze(spark, mc, username)
     bronze.run()
+    
+    source = bronze.source
 
+    silver = Silver(spark, username, source)
+    silver.run()
 if __name__ == "__main__":
 
     if len(sys.argv) > 0:

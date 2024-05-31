@@ -237,7 +237,7 @@ default_shopee_column_rename_mapping = {
     'Người bán trợ giá': 'seller_discount',
     'Được Shopee trợ giá': 'shopee_discount',
     'Giá ưu đãi': 'unit_discount',
-    'Số lượng': 'ordered_quantity',
+    'Số lượng': 'order_quantity',
     'Returned quantity': 'returned_quantity',  # This needs translation
     'Tổng giá bán (sản phẩm)': 'total_product_price',
     'Tổng giá trị đơn hàng (VND)': 'total_order_price',
@@ -291,7 +291,7 @@ shopee_bronze_schema = StructType(
 	StructField("weight", DoubleType(), True),
 	StructField("category_sku", StringType(), True),
 	StructField("category_name", StringType(), True),
-	StructField("ordered_quantity", IntegerType(), True),
+	StructField("order_quantity", IntegerType(), True),
 	StructField("unit_price", FloatType(), True),
 	StructField("seller_discount", FloatType(), True),
 	StructField("shopee_discount", FloatType(), True),

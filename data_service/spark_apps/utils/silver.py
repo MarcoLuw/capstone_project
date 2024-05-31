@@ -36,17 +36,6 @@ class Silver:
         else:
             self.__report_quality_issues()
 
-    # def __read_bronze_data(self):
-    #     bronze_table_path = f"s3a://{self.username}/bronze/{self.source}_sales"
-    #     logger.info(f"Reading bronze data from {bronze_table_path}.")
-    #     df = self.spark.read.format("delta").load(bronze_table_path)
-    #     if df.schema == shopee_bronze_schema:
-    #         logger.info("Bronze data schema validated.")
-    #         return df
-    #     else:
-    #         logger.error("Schema mismatch for the Bronze table data.")
-    #         raise ValueError("Schema mismatch for the Bronze table data.")
-
     def transform(self):
         if self.source == 'shopee':
             self.logger.info("Transforming Shopee data.")
@@ -61,7 +50,7 @@ class Silver:
                 order_number,
                 order_date,
                 ship_date,
-                ordered_quantity as order_quantity,
+                order_quantity,
                 unit_price,
                 unit_discount,
                 CAST(total_order_price AS FLOAT) as sales_amount,
