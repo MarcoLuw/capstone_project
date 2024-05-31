@@ -16,6 +16,24 @@ const FormsElements = () => {
     const [userFields, setUserFields] = useState({});
     const [updateUserFields, setUpdateUserFields] = useState({});
 
+    const fieldDescriptions = {
+        "order_date": "The date the order was placed",
+        "order_number": "Unique identifier for the order",
+        "order_line_number": "Unique identifier for the order line",
+        "order_quantity": "Number of items ordered",
+        "unit_price": "Price per unit of the product",
+        "total_sale": "Total sales amount",
+        "product_key": "Unique key for the product",
+        "product_name": "Name of the product",
+        "product_subcategory": "Subcategory of the product",
+        "product_category": "Category of the product",
+        "customer_key": "Unique key for the customer",
+        "first_name": "Customer's first name",
+        "last_name": "Customer's last name",
+        "full_name": "Customer's full name"
+    };
+
+
     useEffect(() => {
         // Fetch column data when component mounts
         showColumns();
@@ -176,7 +194,7 @@ const FormsElements = () => {
                                     {Object.keys(matchingResult).map((defaultField, index) => (
                                         <tr key={index}>
                                             <td>{matchingResult[defaultField].field}</td>
-                                            <td>{`Description for ${matchingResult[defaultField].field}`}</td>
+                                            <td>{fieldDescriptions[matchingResult[defaultField].field] || `Description for ${matchingResult[defaultField].field}`}</td>
                                             <td>
                                                 <Form.Control as="select" value={userFields[defaultField]} onChange={(e) => handleFieldChange(defaultField, e)}>
                                                     {columns.map((col, idx) => (
