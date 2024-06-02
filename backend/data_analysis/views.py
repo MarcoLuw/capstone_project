@@ -285,7 +285,7 @@ class GetMappingColumnsView(APIView):
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
-        OPENAI_API_KEY=  ""
+        OPENAI_API_KEY=""
         self.client = OpenAI(api_key=OPENAI_API_KEY)
 
         # file_name = cache.get('FILE_NAME')

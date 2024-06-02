@@ -23,7 +23,6 @@ class Silver:
     def __init__(self, spark, username, source):
         self.spark = spark
         self.username = username
-        # self.bronze_df = self.__read_bronze_data()
         self.source = source
         self.quality_issues = []
 
@@ -51,14 +50,14 @@ class Silver:
                 order_date,
                 ship_date,
                 order_quantity,
-                unit_price,
+                price as unit_price,
                 unit_discount,
-                CAST(total_order_price AS FLOAT) as sales_amount,
+                sales_amount,
                 payment_date,
                 product_key,
                 product_name,
-                category_name as product_category,
-                unit_price as price,
+                product_category,
+                price,
                 weight,
                 DAY(order_date) AS day,
                 MONTH(order_date) AS month,
@@ -66,9 +65,9 @@ class Silver:
                 QUARTER(order_date) as quarter,
                 DATE_FORMAT(order_date, 'EEEE') AS day_of_week,
                 DAYOFWEEK(order_date) AS day_of_week_number,
-                shopee_discount_code as promotion,
+                promotion,
                 shipping_company,
-                buyer_name as customer_name
+                customer_name
             FROM {table}
         """
 
@@ -158,7 +157,10 @@ class Silver:
                 delta_table = DeltaTable.forPath(self.spark, silver_table_path)
                 delta_table.alias("tgt").merge(
                     df.alias("src"),
-                    "tgt.order_number = src.order_number AND tgt.product_key = src.product_key"
+                    """
+                    (tgt.order_number = src.order_number AND tgt.product_key = src.product_key)
+                    OR (tgt.order_number IS NULL AND src.order_number IS NULL)
+                    """
                 ).whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
             else:
                 df.write.format("delta").mode("overwrite").save(silver_table_path)
