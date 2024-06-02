@@ -149,57 +149,57 @@ def writeJsonFile(data: dict, filepath: str):
         json.dump(data, file, ensure_ascii=False, indent=4)
     logging.info(f"Data written to {filepath}")
 
-# def connectToDB():
-#     # Database connection information
-#     server = 'host.docker.internal'
-#     database = 'dw'
-#     username = 'root'
-#     password = 'lengochoa2002'
-
-#     # Create the connection string
-#     connection_string = {
-#         'host': server,
-#         'user': username,
-#         'password': password,
-#         'database': database
-#     }
-
-#     # Connect to the database
-#     try:
-#         conn = pymysql.connect(**connection_string)
-#         logging.info("Connection successful")
-#     except Exception as e:
-#         logging.error(f"Error connecting to the database: {e}")
-#         exit()
-
-#     return conn
-
-def connectToDB(username):
-    # Trino connection information 
-    host = 'localhost'  # Adjust this to your Trino host
-    port = 8888  # Default Trino port
-    catalog = 'warehouse'  # Your catalog name
-    schema = f'gold_{username}'  # Your schema name
-    user = 'trino'  # Your Trino user
+def connectToDB():
+    # Database connection information
+    server = 'host.docker.internal'
+    database = 'dw'
+    username = 'root'
+    password = 'lengochoa2002'
 
     # Create the connection string
     connection_string = {
-        'host': host,
-        'port': port,
-        'user': user,
-        'catalog': catalog,
-        'schema': schema
+        'host': server,
+        'user': username,
+        'password': password,
+        'database': database
     }
 
     # Connect to the database
     try:
-        conn = Connection(**connection_string)
+        conn = pymysql.connect(**connection_string)
         logging.info("Connection successful")
     except Exception as e:
         logging.error(f"Error connecting to the database: {e}")
         exit()
 
     return conn
+
+# def connectToDB(username):
+#     # Trino connection information 
+#     host = 'localhost'  # Adjust this to your Trino host
+#     port = 8888  # Default Trino port
+#     catalog = 'warehouse'  # Your catalog name
+#     schema = f'gold_{username}'  # Your schema name
+#     user = 'trino'  # Your Trino user
+
+#     # Create the connection string
+#     connection_string = {
+#         'host': host,
+#         'port': port,
+#         'user': user,
+#         'catalog': catalog,
+#         'schema': schema
+#     }
+
+#     # Connect to the database
+#     try:
+#         conn = Connection(**connection_string)
+#         logging.info("Connection successful")
+#     except Exception as e:
+#         logging.error(f"Error connecting to the database: {e}")
+#         exit()
+
+#     return conn
 
 class GetInfoFieldView(APIView):
     def get(self, request):
@@ -429,16 +429,16 @@ class UpdateColumnMappingView(APIView):
 
         # Trigger ETL
         # Run at least 4 minutes
-        result = subprocess.run(
-                ["docker", "inspect", "-f", "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}", "spark-master"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-        spark_host = result.stdout.strip()
-        flag_etl = spark_utils.main(user.username)
-        if not flag_etl:
-            return Response({"message": "Error triggering ETL."}, status=status.HTTP_400_BAD_REQUEST)
+        # result = subprocess.run(
+        #         ["docker", "inspect", "-f", "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}", "spark-master"],
+        #         capture_output=True,
+        #         text=True,
+        #         check=True
+        #     )
+        # spark_host = result.stdout.strip()
+        # flag_etl = spark_utils.main(user.username)
+        # if not flag_etl:
+        #     return Response({"message": "Error triggering ETL."}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
 
 class GetCardView(APIView):

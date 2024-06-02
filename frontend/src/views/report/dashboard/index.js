@@ -66,6 +66,20 @@ const DashDefault = () => {
 
     //API
 
+    const postVisualList = async (visualList) => {
+        try {
+            const response = await axios.post('http://localhost:8000/userdb/api/dashboard-state', {
+                visualist: visualList
+            }, {
+                withCredentials: true
+            });
+            console.log('Successfully posted visual list:', response.data);
+        } catch (error) {
+            console.error('Failed to post visual list:', error);
+        }
+    };
+    
+
     const convertFiltersToParams = (filterList, startTime, endTime, orderDateField) => {
         const params = {};
         let filterIndex = 1;
@@ -360,6 +374,13 @@ const DashDefault = () => {
             ]);
         }
     }, [matchingResult]);
+
+    useEffect(() => {
+        if (visualList.length > 0) {  // Ensure there's at least one visualization
+            postVisualList(visualList);
+        }
+    }, [visualList]);
+    
 
     useEffect(() => {
         const fetchFieldInfo = async () => {
