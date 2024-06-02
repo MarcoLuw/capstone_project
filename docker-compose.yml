@@ -26,27 +26,27 @@ services:
     networks:
       - backendnetwork
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #     args:
-  #       TARGETPLATFORM: linux/amd64
-  #   container_name: django-backend
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.5'
-  #   ports:
-  #     - '8000:8000'
-  #   restart: always
-  #   networks:
-  #     - backendnetwork
-  #   volumes:
-  #     - './backend:/app/backend'
-  #     - '/var/run/docker.sock:/var/run/docker.sock'
-  #   depends_on:
-  #     - db
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        TARGETPLATFORM: linux/amd64
+    container_name: django-backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+    ports:
+      - '8000:8000'
+    restart: always
+    networks:
+      - backendnetwork
+    volumes:
+      - './backend:/app/backend'
+      - '//var/run/docker.sock:/var/run/docker.sock'
+    depends_on:
+      - db
   
   # Data service
   minio:
@@ -132,47 +132,47 @@ services:
     networks:
       - backendnetwork
 
-  # spark-master:
-  #   hostname: spark-master
-  #   container_name: spark-master
-  #   image: cluster-apache-spark:3.4.2
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: "0.5"
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 3
-  #   ports:
-  #     - "8080:8080"
-  #     - "7077:7077"
-  #     - "8889:8889"
-  #   volumes:
-  #     - ./data_service/spark_apps/:/opt/spark_apps/
-  #     - ./data_service/tests/:/opt/tests/
-  #     - ./data_service/hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
-  #     - ./data_service/hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
-  #     - ./data_service/hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
-  #     - ./data_service/spark-config/conf/master/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-  #     - ./data_service/hadoop-libs/delta-core_2.12-2.4.0.jar:/opt/spark/jars/delta-core_2.12-2.4.0.jar
-  #     - ./data_service/hadoop-libs/delta-storage-2.4.0.jar:/opt/spark/jars/delta-storage-2.4.0.jar
-  #   environment:
-  #     - SPARK_LOCAL_IP=spark-master
-  #     - SPARK_WORKLOAD=master
-  #     - PYSPARK_DRIVER_PYTHON=python3
-  #     # - PYSPARK_DRIVER_PYTHON_OPTS=jupyter notebook --no-browser --port=8889 --allow-root --ip=0.0.0.0
-  #   networks:
-  #     - backendnetwork
+  spark-master:
+    hostname: spark-master
+    container_name: spark-master
+    image: cluster-apache-spark:3.4.2
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+      - "8889:8889"
+    volumes:
+      - ./data_service/spark_apps/:/opt/spark_apps/
+      - ./data_service/tests/:/opt/tests/
+      - ./data_service/hadoop-libs/aws-java-sdk-1.12.541.jar:/opt/spark/jars/aws-java-sdk-1.12.541.jar
+      - ./data_service/hadoop-libs/aws-java-sdk-bundle-1.12.541.jar:/opt/spark/jars/aws-java-sdk-bundle-1.12.541.jar
+      - ./data_service/hadoop-libs/hadoop-aws-3.3.4.jar:/opt/spark/jars/hadoop-aws-3.3.4.jar
+      - ./data_service/spark-config/conf/master/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+      - ./data_service/hadoop-libs/delta-core_2.12-2.4.0.jar:/opt/spark/jars/delta-core_2.12-2.4.0.jar
+      - ./data_service/hadoop-libs/delta-storage-2.4.0.jar:/opt/spark/jars/delta-storage-2.4.0.jar
+    environment:
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_WORKLOAD=master
+      - PYSPARK_DRIVER_PYTHON=python3
+      # - PYSPARK_DRIVER_PYTHON_OPTS=jupyter notebook --no-browser --port=8889 --allow-root --ip=0.0.0.0
+    networks:
+      - backendnetwork
 
   spark-worker:
     image: cluster-apache-spark:3.4.2
     ports:
       - "8081-8099:8080"
       - "7078-7099:7000"
-    # depends_on:
-    #   - spark-master
+    depends_on:
+      - spark-master
     deploy:
       resources:
         limits:

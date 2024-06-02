@@ -7,6 +7,7 @@ from minio.error import S3Error, InvalidResponseError
 from pyspark import StorageLevel
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+from pyspark.sql.types import (IntegerType, StringType, FloatType, DoubleType, DateType, DecimalType, BooleanType, ByteType, StructField, StructType)
 
 MINIO_ENDPOINT = os.getenv('MINIO_URL')
 MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY')
@@ -46,3 +47,29 @@ def get_minio_client(username):
         return minio_client
     except S3Error as e:
         raise SystemExit(e)
+
+def get_spark_type(data_type):
+    if data_type == "IntegerType":
+        return IntegerType()
+    elif data_type == "StringType":
+        return StringType()
+    elif data_type == "FloatType":
+        return FloatType()
+    elif data_type == "DoubleType":
+        return DoubleType()
+    elif data_type == "DateType":
+        return DateType()
+    elif data_type == "DecimalType":
+        return DecimalType()
+    elif data_type == "BooleanType":
+        return BooleanType()
+    elif data_type == "ByteType":
+        return ByteType()
+    else:
+        raise ValueError(f"Unsupported data type: {data_type}")
+
+def create_schema(table_schema):
+    fields = []
+    for field_name, field_type in table_schema['fields'].items():
+        fields.append(StructField(field_name, get_spark_type(field_type), True))
+    return StructType(fields)
