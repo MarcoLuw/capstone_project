@@ -42,13 +42,13 @@ def getData(conn, start_date=None, end_date=None):
             fs.order_date, 
             SUM(fs.order_quantity) AS total_quantity 
         FROM 
-            fact_ecommerce_sales fs
+            shopee_fact_sales fs
         JOIN 
             dim_product dp ON fs.product_key = dp.product_key
         GROUP BY 
             fs.product_key, 
             dp.product_name, 
-            fs.order_date;
+            fs.order_date
         """
     else:
         cmd = f"""
@@ -58,7 +58,7 @@ def getData(conn, start_date=None, end_date=None):
             fs.order_date, 
             SUM(fs.order_quantity) AS total_quantity 
         FROM 
-            fact_ecommerce_sales fs
+            shopee_fact_sales fs
         JOIN 
             dim_product dp ON fs.product_key = dp.product_key
         WHERE 
@@ -66,7 +66,7 @@ def getData(conn, start_date=None, end_date=None):
         GROUP BY 
             fs.product_key, 
             dp.product_name, 
-            fs.order_date;
+            fs.order_date
         """
     # Specify column names
     cursor.execute(cmd)
@@ -145,7 +145,7 @@ class PredictDataView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response('Unauthenticated!', status=status.HTTP_401_UNAUTHORIZED)
-        
+        user = userdbViews.getUser(payload['id'])
         # Load model
         try:
             model = loadModel()
@@ -155,7 +155,7 @@ class PredictDataView(APIView):
             return Response('Could not load the model', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Initial database connection
-        conn = dataAnalysisViews.connectToDB()
+        conn = dataAnalysisViews.connectToDB(user.username)
         if conn is None:
             return Response('Could not connect to the database', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         start_date = request.GET.get('start_date', None)
@@ -170,6 +170,7 @@ class GetBasketDataView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+        user = userdbViews.getUser(payload['id'])
 
         # Get start_date and end_date from request parameters
         start_date = request.GET.get('start_date')
@@ -186,19 +187,19 @@ class GetBasketDataView(APIView):
 
         # Columns to be selected
         selected_columns = [
-            "fact_ecommerce_sales.order_number",
-            "fact_ecommerce_sales.product_key",
+            "shopee_fact_sales.order_number",
+            "shopee_fact_sales.product_key",
             "dim_product.product_name"
         ]
 
         # Generate the SQL query
-        from_clause = "fact_ecommerce_sales JOIN dim_product ON fact_ecommerce_sales.product_key = dim_product.product_key"
+        from_clause = "shopee_fact_sales JOIN dim_product ON shopee_fact_sales.product_key = dim_product.product_key"
         where_clause = f"order_date BETWEEN '{start_date}' AND '{end_date}'"
         select_clause = ", ".join(selected_columns)
 
         query = f"SELECT {select_clause} FROM {from_clause} WHERE {where_clause} LIMIT 50"
 
-        conn = dataAnalysisViews.connectToDB()
+        conn = dataAnalysisViews.connectToDB(user.username)
 
         try:
             cursor = conn.cursor()
@@ -277,6 +278,7 @@ class GetCustomerDataView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+        user = userdbViews.getUser(payload['id'])
 
         # Get start_date and end_date from request parameters
         start_date = request.GET.get('start_date')
@@ -292,7 +294,7 @@ class GetCustomerDataView(APIView):
             return Response({"message": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate the SQL query
-        recent_date_query = f"(SELECT MAX(order_date) FROM fact_ecommerce_sales WHERE order_date BETWEEN '{start_date}' AND '{end_date}')"
+        recent_date_query = f"(SELECT MAX(order_date) FROM shopee_fact_sales WHERE order_date BETWEEN '{start_date}' AND '{end_date}')"
         
         # Columns to be selected from dim_customer
         customer_columns = [
@@ -301,16 +303,16 @@ class GetCustomerDataView(APIView):
             "dim_customer.last_name"
         ]
 
-        # Columns to be selected from fact_ecommerce_sales
+        # Columns to be selected from shopee_fact_sales
         selected_columns = [
-            "DATEDIFF(" + recent_date_query + ", MAX(fact_ecommerce_sales.order_date)) AS recency",
-            "COUNT(fact_ecommerce_sales.order_date) AS frequency",
-            "SUM(fact_ecommerce_sales.total_sale) AS monetary"
+            "DATEDIFF(" + recent_date_query + ", MAX(shopee_fact_sales.order_date)) AS recency",
+            "COUNT(shopee_fact_sales.order_date) AS frequency",
+            "SUM(shopee_fact_sales.total_sale) AS monetary"
         ]
 
         # Generate the SQL query
-        from_clause = "fact_ecommerce_sales JOIN dim_customer ON fact_ecommerce_sales.customer_key = dim_customer.customer_key"
-        where_clause = f"fact_ecommerce_sales.order_date BETWEEN '{start_date}' AND '{end_date}'"
+        from_clause = "shopee_fact_sales JOIN dim_customer ON shopee_fact_sales.customer_key = dim_customer.customer_key"
+        where_clause = f"shopee_fact_sales.order_date BETWEEN '{start_date}' AND '{end_date}'"
         select_clause = ", ".join(customer_columns + selected_columns)
         group_by_clause = ", ".join(customer_columns)
 
@@ -322,7 +324,7 @@ class GetCustomerDataView(APIView):
         LIMIT 50
         """
 
-        conn = dataAnalysisViews.connectToDB()
+        conn = dataAnalysisViews.connectToDB(user.username)
 
         try:
             cursor = conn.cursor()

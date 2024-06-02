@@ -48,8 +48,8 @@ const DashDefault = () => {
     });
 
 
-    const [startTime, setStartTime] = useState('2022-10-01');
-    const [endTime, setEndTime] = useState('2022-11-30');
+    const [startTime, setStartTime] = useState('2021-01-01');
+    const [endTime, setEndTime] = useState('2021-11-30');
 
     const handleStartTimeChange = (e) => {
         setStartTime(e.target.value);

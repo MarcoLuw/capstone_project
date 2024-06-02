@@ -17,7 +17,7 @@ import pandas as pd
 import json
 import pymysql
 import subprocess
-from trino.dbapi import Connection
+from trino.dbapi import connect
 from openai import OpenAI
 # Create your views here.
 
@@ -26,6 +26,13 @@ STORAGE_PATH = 'storage'
 
 # Config logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s: [%(levelname)s] - %(message)s')
+
+def loadFromJson():
+    filepath = 'storage/shopee_mapping.json'
+    with open(filepath, 'r') as file:
+        data = json.load(file)
+        logging.info(f'Load data from json file!')
+    return data
 
 # Lưu columns và matching_result vào cache
 def save_to_cache(columns, matching_result):
@@ -36,6 +43,8 @@ def save_to_cache(columns, matching_result):
 def load_from_cache():
     columns = cache.get('columns', [])
     matching_result = cache.get('matching_result', {})
+    if not matching_result:
+        matching_result = loadFromJson()
     return columns, matching_result
 
 COLUMN_MAPPING = {}
@@ -77,14 +86,14 @@ TEMP_MAPPING = {
 
 # Define The NUMERIC_FIELDS and AGGREGATION_OPTIONS
 NUMERIC_FIELDS = [
-                'order_key', 'order_number', 'order_line_number', 'order_date', 
+                'order_key', 'order_number', 'order_date', 
                 'order_time', 'customer_key', 'store_key', 'product_key', 
-                'unit_price', 'unit_cost', 'order_quantity', 'total_sale'
+                'unit_price', 'unit_cost', 'order_quantity', 'sales_amount'
                 ]
 
 SCHEMAS_JSON = {
     "tables": {
-        "fact_ecommerce_sales": [
+        "shopee_fact_sales": [
             {"field": "date_key", "description": "Foreign key to dim_date"},
             {"field": "customer_key", "description": "Foreign key to dim_customer"},
             {"field": "product_key", "description": "Foreign key to dim_product"},
@@ -175,7 +184,7 @@ def writeJsonFile(data: dict, filepath: str):
 
 def connectToDB(username):
     # Trino connection information 
-    host = 'localhost'  # Adjust this to your Trino host
+    host = 'trino'  # Adjust this to your Trino host
     port = 8888  # Default Trino port
     catalog = 'warehouse'  # Your catalog name
     schema = f'gold_{username}'  # Your schema name
@@ -192,7 +201,7 @@ def connectToDB(username):
 
     # Connect to the database
     try:
-        conn = Connection(**connection_string)
+        conn = connect(**connection_string)
         logging.info("Connection successful")
     except Exception as e:
         logging.error(f"Error connecting to the database: {e}")
@@ -205,6 +214,8 @@ class GetInfoFieldView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user = userdbViews.getUser(payload['id'])
 
         field = request.GET.get('field', None)
         if not field:
@@ -222,21 +233,21 @@ class GetInfoFieldView(APIView):
             return Response({"message": "Invalid field name."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get field type from database
-        field_type = self.getFieldType(column_name, table_name)
+        field_type = self.getFieldType(column_name, table_name, user.username)
         if not field_type:
             return Response({"message": "Could not determine field type."}, status=status.HTTP_400_BAD_REQUEST)
 
         if field_type in ['int','float','date','datetime','tinyint']:
-            min_value, max_value = self.getMinAndMaxValues(column_name, table_name)
+            min_value, max_value = self.getMinAndMaxValues(column_name, table_name, user.username)
             if min_value is None or max_value is None:
                 return Response({"data": None}, status=status.HTTP_204_NO_CONTENT)
             return Response({"type": field_type, "values": {"min": min_value, "max": max_value}}, status=status.HTTP_200_OK)
         else:
-            unique_values = self.getDistinctValues(column_name, table_name)
+            unique_values = self.getDistinctValues(column_name, table_name, user.username)
             return Response({"type": field_type, "values": list(unique_values)}, status=status.HTTP_200_OK)
 
-    def getFieldType(self, column_name, table_name):
-        conn = connectToDB()
+    def getFieldType(self, column_name, table_name, username):
+        conn = connectToDB(username)
         cursor = conn.cursor()
         cursor.execute("""
             SELECT data_type 
@@ -248,8 +259,8 @@ class GetInfoFieldView(APIView):
         conn.close()
         return result[0] if result else None
 
-    def getMinAndMaxValues(self, column_name, table_name):
-        conn = connectToDB()
+    def getMinAndMaxValues(self, column_name, table_name, username):
+        conn = connectToDB(username)
         cursor = conn.cursor()
         cursor.execute(f"SELECT MIN({column_name}), MAX({column_name}) FROM {table_name}")
         result = cursor.fetchone()
@@ -257,8 +268,8 @@ class GetInfoFieldView(APIView):
         conn.close()
         return result
 
-    def getDistinctValues(self, column_name, table_name):
-        conn = connectToDB()
+    def getDistinctValues(self, column_name, table_name, username):
+        conn = connectToDB(username)
         cursor = conn.cursor()
         cursor.execute(f"SELECT DISTINCT {column_name} FROM {table_name}")
         results = cursor.fetchall()
@@ -269,7 +280,7 @@ class GetInfoFieldView(APIView):
 class GetAllColumnsView(APIView):
     def get(self, request):
         # Load matching_result from cache
-        matching_result = cache.get('matching_result', {})
+        cols, matching_result = load_from_cache()
 
         
         if not matching_result:
@@ -436,6 +447,7 @@ class UpdateColumnMappingView(APIView):
             )
         spark_host = result.stdout.strip()
         flag_etl = spark_utils.main(user.username)
+        logging.info(f"Spark ngu vcl: {flag_etl}")
         if not flag_etl:
             return Response({"message": "Error triggering ETL."}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
@@ -446,6 +458,8 @@ class GetCardView(APIView):
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
+        user = userdbViews.getUser(payload['id'])
+
         # Load COLUMN_MAPPING from cache
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
@@ -482,7 +496,7 @@ class GetCardView(APIView):
                 filter_table = COLUMN_MAPPING[filter_field]['table']
                 filter_column = COLUMN_MAPPING[filter_field]['field']
                 tables.add(filter_table)  # Add table to the set
-
+                print("Column mapping: ", COLUMN_MAPPING)
                 # Add join condition only if the tables are different
                 if filter_table != table:
                     join_condition = f"{table}.product_key = {filter_table}.product_key"
@@ -499,7 +513,7 @@ class GetCardView(APIView):
                 filter_start = request.GET.get(f'filter_field{i}_start', None)
                 filter_end = request.GET.get(f'filter_field{i}_end', None)
                 if filter_start and filter_end:
-                    where_clauses.append(f"{filter_column} BETWEEN '{filter_start}' AND '{filter_end}'")
+                    where_clauses.append(f"{filter_column} BETWEEN  '{filter_start}' AND  '{filter_end}'")
 
             i += 1
 
@@ -511,20 +525,25 @@ class GetCardView(APIView):
 
         # Generate the command
         cmd = self.generateAggregationQueryCard(from_clause, original_field, aggre, where_clause)
-        print("cmd ngu",cmd)
+        print("Card ngu",cmd)
         if cmd == 'Invalid':
             return Response({"data": 0}, status=status.HTTP_204_NO_CONTENT)
 
         # Initialize connection to db
-        conn = connectToDB()
+        conn = connectToDB(user.username)
         
         # Perform a query
         try:
+            print("Connect to Trino")
             cursor = conn.cursor()
             cursor.execute(cmd)
+            print("Run query successfully")
             rows = cursor.fetchall()
+            print("Fetch data done")
             # Handle data string
             data = rows[0][0]
+            print("Card Row: ", rows)
+            print("CARD data:", data)
             return Response({"data": data}, status=status.HTTP_200_OK)
         except Exception as e:
             logging.error(f"Error executing query: {e}")
@@ -536,13 +555,13 @@ class GetCardView(APIView):
             return 'Invalid'
         
         if aggre == 'SUM':
-            query = f'SELECT SUM({field}) FROM {from_clause} WHERE {where_clause};'
+            query = f'SELECT SUM({field}) FROM {from_clause} WHERE {where_clause}'
         elif aggre == 'AVERAGE':
-            query = f'SELECT AVG({field}) FROM {from_clause} WHERE {where_clause};'
+            query = f'SELECT AVG({field}) FROM {from_clause} WHERE {where_clause}'
         elif aggre == 'COUNT':
-            query = f'SELECT COUNT({field}) FROM {from_clause} WHERE {where_clause};'
+            query = f'SELECT COUNT({field}) FROM {from_clause} WHERE {where_clause}'
         elif aggre == 'DISTINCT':
-            query = f'SELECT COUNT(DISTINCT {field}) FROM {from_clause} WHERE {where_clause};'
+            query = f'SELECT COUNT(DISTINCT {field}) FROM {from_clause} WHERE {where_clause}'
         else: 
             query = 'Invalid'
         
@@ -557,7 +576,8 @@ class GetBCPView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
-        
+        user = userdbViews.getUser(payload['id'])
+
         columns, matching_result = load_from_cache()
         global COLUMN_MAPPING
         COLUMN_MAPPING = matching_result
@@ -609,14 +629,15 @@ class GetBCPView(APIView):
                 filter_start = request.GET.get(f'filter_field{i}_start', None)
                 filter_end = request.GET.get(f'filter_field{i}_end', None)
                 if filter_start and filter_end:
-                    where_clauses.append(f"{filter_column} BETWEEN '{filter_start}' AND '{filter_end}'")
+                    where_clauses.append(f"{filter_column} BETWEEN  '{filter_start}' AND  '{filter_end}'")
 
             i += 1
 
         where_clause = ' AND '.join(where_clauses) if where_clauses else '1=1'
 
-        conn = connectToDB()
+        conn = connectToDB(user.username)
         cmd = self.generateAggregationQueryBCP(category_table, category_field, value_table, value_field, agg, where_clause, sort_category, sort_value, top)
+        print("BCP ngu:", cmd)
         if cmd == 'Invalid':
             return Response({"data": []}, status=status.HTTP_204_NO_CONTENT)
 
@@ -629,7 +650,7 @@ class GetBCPView(APIView):
             if top:
                 top = int(top)  # Convert the top parameter to an integer
                 data = data[:top]
-            
+            print("BCP data:\n", data)
             return Response({"data": data}, status=status.HTTP_200_OK)
         except Exception as e:
             logging.error(f"Error executing query: {e}")
@@ -651,8 +672,8 @@ class GetBCPView(APIView):
 
         # Xây dựng câu truy vấn với JOIN
         query = (f"SELECT {category_table}.{category_field}, {agg_func}({value_table}.{value_field}) as agg_value "
-                 f"FROM fact_ecommerce_sales "
-                 f"JOIN dim_product ON fact_ecommerce_sales.product_key = dim_product.product_key "
+                 f"FROM shopee_fact_sales "
+                 f"JOIN dim_product ON shopee_fact_sales.product_key = dim_product.product_key "
                  f"WHERE {where_clause} "
                  f"GROUP BY {category_table}.{category_field}")
 
@@ -689,6 +710,7 @@ class GetDataTableView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+        user = userdbViews.getUser(payload['id'])
 
         list_field = request.GET.get('list_field')
         if not list_field:
@@ -744,7 +766,7 @@ class GetDataTableView(APIView):
                 filter_start = request.GET.get(f'filter_field{i}_start', None)
                 filter_end = request.GET.get(f'filter_field{i}_end', None)
                 if filter_start and filter_end:
-                    where_clauses.append(f"{filter_column} BETWEEN '{filter_start}' AND '{filter_end}'")
+                    where_clauses.append(f"{filter_column} BETWEEN  '{filter_start}' AND  '{filter_end}'")
 
             i += 1
 
@@ -754,10 +776,10 @@ class GetDataTableView(APIView):
             join_clause = ' AND '.join(join_conditions)
             where_clause = f"{join_clause} AND {where_clause}"
 
-        conn = connectToDB()
+        conn = connectToDB(user.username)
 
         # Generate the command
-        cmd = self.generate_select_query(mapped_fields, from_clause, where_clause)
+        cmd = self.generate_select_query(mapped_fields, from_clause, where_clause, user.username)
 
         try:
             cursor = conn.cursor()
@@ -773,7 +795,7 @@ class GetDataTableView(APIView):
     def formatRow(self, row, fields):
         return {field: value for field, value in zip(fields, row)}
 
-    def generate_select_query(self, mapped_fields, from_clause, where_clause):
+    def generate_select_query(self, mapped_fields, from_clause, where_clause, username):
         # Collect unique tables needed for the query
         tables = {field[0] for field in mapped_fields}
         if len(tables) == 1:
@@ -799,7 +821,8 @@ class GetChatBotView(APIView):
         isAuth, payload = userdbViews.isAuthenticate(request)
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
-        
+        user = userdbViews.getUser(payload['id'])
+
         OPENAI_API_KEY=""
         self.client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -823,7 +846,7 @@ class GetChatBotView(APIView):
                     result = {"message": message_text, "data": ""}
                     return Response(result, status=status.HTTP_200_OK)
 
-                conn = connectToDB()
+                conn = connectToDB(user.username)
                 try:
                     cursor = conn.cursor()
                     cursor.execute(query_text)
@@ -868,7 +891,7 @@ class GetChatBotView(APIView):
     
     def generate_query(self, schemas, user_prompt):
 
-        system_config = """You are chatbot about data analyst. You will write query MySQL. But you don't say about MySQL. 
+        system_config = """You are chatbot about data analyst. You will write query using SQL language of Trino. But you don't say about SQL instruction. 
         Respond format json like this:{"message":Short describe how to query the data for non-tech users, "query": insert SQL command here on oneline}"
         If user just talk something with you, talk something in "message" and "query": ""
         """

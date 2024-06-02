@@ -34,15 +34,15 @@ def main(username):
     )
 
     bronze = Bronze(spark, mc, username)
-    bronze.run()
+    # bronze.run()
     
-    source = "shopee"
+    # source = "shopee"
 
-    silver = Silver(spark, username, source)
-    silver.run()
+    # silver = Silver(spark, username, source)
+    # silver.run()
 
-    gold = Gold(spark, username, source)
-    gold.run()
+    # gold = Gold(spark, username, source)
+    # gold.run()
 if __name__ == "__main__":
 
     if len(sys.argv) > 0:

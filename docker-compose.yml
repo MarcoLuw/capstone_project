@@ -26,24 +26,27 @@ services:
     networks:
       - backendnetwork
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #     args:
-  #       TARGETPLATFORM: linux/amd64
-  #   container_name: django-backend
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.5'
-  #   ports:
-  #     - backendnetwork
-  #   volumes:
-  #     - './backend:/app/backend'
-  #     - '/var/run/docker.sock:/var/run/docker.sock'
-  #   depends_on:
-  #     - db
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        TARGETPLATFORM: linux/amd64
+    container_name: django-backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+    ports:
+      - 8000:8000
+    restart: always
+    networks:
+      - backendnetwork
+    volumes:
+      - './backend:/app/backend'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    depends_on:
+      - db
   
   # Data service
   minio:
@@ -146,6 +149,7 @@ services:
       - "8080:8080"
       - "7077:7077"
       - "8889:8889"
+      - "6066:6066"
     volumes:
       - ./data_service/spark_apps/:/opt/spark_apps/
       - ./data_service/tests/:/opt/tests/

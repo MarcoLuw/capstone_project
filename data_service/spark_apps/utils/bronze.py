@@ -28,7 +28,7 @@ class Bronze:
         self.file_list = []
         self.source_path = f's3a://{username}'
         self.__create_bronze_db()
-        self.log_spark_config()
+        # self.log_spark_config()
 
     def log_spark_config(self):
         # Retrieve and log Spark configurations
