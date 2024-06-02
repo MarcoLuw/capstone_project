@@ -152,4 +152,24 @@ class ImportDataFromFileView(APIView):
                 destination.write(chunk)
         cache.set('FILE_NAME', file.name, timeout=None)
         return filepath
+
+""" Read the dashboard state of the user """
+class DashboardStateView(APIView):
+    def get(self, request):
+        isAuth, payload = isAuthenticate(request)
+        if not isAuth:
+            return Response({"Error": "Unauthenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
+        user = getUser(payload['id'])
+        dashboard_data = user.dashboard_state
+        return Response({"visualist": dashboard_data}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        isAuth, payload = isAuthenticate(request)
+        if not isAuth:
+            return Response({"Error": "Unauthenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user = getUser(payload['id'])
+        user.dashboard_state = request.data
+        user.save()
+        return Response({"message": "Dashboard state saved successfully."}, status=status.HTTP_200_OK)

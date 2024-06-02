@@ -78,15 +78,15 @@ def set_user_policy(username):
         logging.info("Policy file copied to container successfully")
 
     # Use the mc command to create the policy in MinIO inside the Docker container
-    create_policy_cmd = f"docker exec minio-client mc admin policy create {MINIO_ALIAS} {policy_name} {container_policy_path}"
-    if run_command(create_policy_cmd) is None:
-        logging.error(f"Failed to create policy '{policy_name}'")
-        return
-    else:
-        logging.info(f"Policy '{policy_name}' created successfully")
+    # create_policy_cmd = f"docker exec minio-client mc admin policy create {MINIO_ALIAS} {policy_name} {container_policy_path}"
+    # if run_command(create_policy_cmd) is None:
+    #     logging.error(f"Failed to create policy '{policy_name}'")
+    #     return
+    # else:
+    #     logging.info(f"Policy '{policy_name}' created successfully")
 
     # Apply the policy to the user
-    link_policy_cmd = f"docker exec minio-client mc admin policy attach {MINIO_ALIAS} {policy_name} --user {username}"
+    link_policy_cmd = f"docker exec minio-client mc admin policy attach {MINIO_ALIAS} user_policy --user {username}"
     if run_command(link_policy_cmd) is None:
         logging.error(f"Failed to attach policy '{policy_name}' to user '{username}'")
         return
@@ -129,6 +129,10 @@ def create_user_and_set_policy(username):
     except Exception as e:
         logging.error(f"Error creating user: {e}")
         return
+
+    # Check if bucket exists
+    if not is_bucket_exists(username):
+        create_bucket(username)
 
     # Set the user policy
     try:

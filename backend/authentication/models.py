@@ -8,6 +8,8 @@ class User(AbstractUser):
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     email = models.CharField(max_length=100, unique=True)
+    # save json format to dashboard_state column, it can be empty
+    dashboard_state = models.JSONField(default=dict)
 
     # This one is necessary for login with email (unique email)
     USERNAME_FIELD = 'email'

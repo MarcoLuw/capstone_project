@@ -7,17 +7,22 @@ from django.db.models import Min, Max
 from django.core.cache import cache
 from datetime import datetime
 
-
-
 import userdb.views as userdbViews
+from data_service import file_uploader
+from data_service import spark_utils
 import os
 
 import logging
 import pandas as pd
 import json
 import pymysql
+import subprocess
+from trino.dbapi import Connection
 from openai import OpenAI
 # Create your views here.
+
+# Storage path
+STORAGE_PATH = 'storage'
 
 # Config logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s: [%(levelname)s] - %(message)s')
@@ -138,24 +143,57 @@ def readJsonFile(filepath: str) -> pd.DataFrame:
     df = pd.DataFrame(data)
     return df
 
-def connectToDB():
-    # Database connection information
-    server = 'host.docker.internal'
-    database = 'dw'
-    username = 'root'
-    password = 'lengochoa2002'
+def writeJsonFile(data: dict, filepath: str):
+    # Write the JSON file
+    with open(filepath, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+    logging.info(f"Data written to {filepath}")
+
+# def connectToDB():
+#     # Database connection information
+#     server = 'host.docker.internal'
+#     database = 'dw'
+#     username = 'root'
+#     password = 'lengochoa2002'
+
+#     # Create the connection string
+#     connection_string = {
+#         'host': server,
+#         'user': username,
+#         'password': password,
+#         'database': database
+#     }
+
+#     # Connect to the database
+#     try:
+#         conn = pymysql.connect(**connection_string)
+#         logging.info("Connection successful")
+#     except Exception as e:
+#         logging.error(f"Error connecting to the database: {e}")
+#         exit()
+
+#     return conn
+
+def connectToDB(username):
+    # Trino connection information 
+    host = 'localhost'  # Adjust this to your Trino host
+    port = 8888  # Default Trino port
+    catalog = 'warehouse'  # Your catalog name
+    schema = f'gold_{username}'  # Your schema name
+    user = 'trino'  # Your Trino user
 
     # Create the connection string
     connection_string = {
-        'host': server,
-        'user': username,
-        'password': password,
-        'database': database
+        'host': host,
+        'port': port,
+        'user': user,
+        'catalog': catalog,
+        'schema': schema
     }
 
     # Connect to the database
     try:
-        conn = pymysql.connect(**connection_string)
+        conn = Connection(**connection_string)
         logging.info("Connection successful")
     except Exception as e:
         logging.error(f"Error connecting to the database: {e}")
@@ -248,7 +286,7 @@ class GetMappingColumnsView(APIView):
         if not isAuth:
             return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
         
-        OPENAI_API_KEY=""
+        OPENAI_API_KEY=  ""
         self.client = OpenAI(api_key=OPENAI_API_KEY)
 
         # file_name = cache.get('FILE_NAME')
@@ -283,6 +321,25 @@ class GetMappingColumnsView(APIView):
         # Lưu columns và matching_result vào cache
         save_to_cache(columns, matching_result)
         
+        # # Transform matching_result to mapping format for ETL
+        # source_mapping = {
+        #     "source": "shopee",
+        #     "matching_result": []
+        # }
+        # for source_field, source_detail in matching_result.items():
+        #     source_mapping["matching_result"].append({
+        #         "source_field": source_field,
+        #         "table": source_detail["table"],
+        #         "field": source_detail["field"]
+        #     })
+
+        # # Write matching_result to a JSON file
+        # writeDestination = f'{STORAGE_PATH}/{source_mapping["source"]}_mapping.json'
+        # writeJsonFile(source_mapping, writeDestination)
+        # # Upload matching_result to minio
+        # user = userdbViews.getUser(payload['id'])
+        # file_uploader.uploadFile(writeDestination, user.username)
+
         return Response({"columns":columns,"matching_result": matching_result}, status=status.HTTP_200_OK)
     
     def extract_json(self, string):
@@ -326,6 +383,10 @@ class UpdateColumnMappingView(APIView):
         global COLUMN_MAPPING
         updates = request.data  # Expecting a dictionary of updates
 
+        isAuth, payload = userdbViews.isAuthenticate(request)
+        if not isAuth:
+            return Response({"message": "Unauthenticated!"}, status=status.HTTP_401_UNAUTHORIZED)
+
         if not isinstance(updates, dict):
             return Response({"message": "Invalid data format, expecting a dictionary"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -345,9 +406,40 @@ class UpdateColumnMappingView(APIView):
         # Cập nhật cache với COLUMN_MAPPING
         columns, _ = load_from_cache()
         save_to_cache(columns, COLUMN_MAPPING)
-        
-        return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
+        columns, matching_result = load_from_cache()
 
+        # Transform matching_result to mapping format for ETL
+        source_mapping = {
+            "source": "shopee",
+            "matching_result": []
+        }
+        for source_field, source_detail in matching_result.items():
+            source_mapping["matching_result"].append({
+                "source_field": source_field,
+                "table": source_detail["table"],
+                "field": source_detail["field"]
+            })
+
+        # Write matching_result to a JSON file
+        writeDestination = f'{STORAGE_PATH}/{source_mapping["source"]}_mapping.json'
+        writeJsonFile(source_mapping, writeDestination)
+        # Upload matching_result to minio
+        user = userdbViews.getUser(payload['id'])
+        file_uploader.uploadFile(writeDestination, user.username)
+
+        # Trigger ETL
+        # Run at least 4 minutes
+        result = subprocess.run(
+                ["docker", "inspect", "-f", "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}", "spark-master"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+        spark_host = result.stdout.strip()
+        flag_etl = spark_utils.main(user.username)
+        if not flag_etl:
+            return Response({"message": "Error triggering ETL."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Column mappings updated successfully"}, status=status.HTTP_200_OK)
 
 class GetCardView(APIView):
     def get(self, request):

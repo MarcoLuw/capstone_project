@@ -1,0 +1,52 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": [
+				"s3:*"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::${aws:username}"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:*"
+			],
+			"Resource": "arn:aws:s3:::${aws:username}/*"
+		},
+		{
+			"Action": [
+				"s3:ListBucket"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::hive"
+			]
+		},
+		{
+			"Sid": "AllowUserToCreateDatabase",
+			"Action": [
+				"s3:PutObject",
+				"s3:GetObject"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::hive/warehouse/*"
+			]
+		},
+		{
+			"Sid": "AllowUserToReadWriteDataInTheirSchema",
+			"Action": [
+				"s3:PutObject",
+				"s3:GetObject"
+			],
+			"Effect": "Allow",
+			"Resource": [
+				"arn:aws:s3:::hive/warehouse/${aws:username}_schema/*"
+			]
+		}
+	]
+}

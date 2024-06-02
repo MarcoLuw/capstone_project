@@ -70,7 +70,7 @@ const routes = [
             {
                 exact: true,
                 path: '/suggestion',
-                component: lazy(() => import('./views/report/suggestion'))
+                component: lazy(() => import('./views/report/Suggestion'))
             },
 
             {

@@ -1,7 +1,7 @@
 <configuration>
     <property>
         <name>metastore.thrift.uris</name>
-        <value>thrift://host.docker.internal:9083</value> <!-- Accesing trough localhost to woid docker compose adding _wba-network in hostname -->
+        <value>thrift://hive-metastore:9083</value> <!-- Accesing trough localhost to woid docker compose adding _wba-network in hostname -->
         <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
     </property>
     <property>
@@ -16,10 +16,10 @@
         <name>fs.defaultFS</name>
         <value>s3a://hive</value>
     </property>
-    <!-- <property>
+    <property>
         <name>metastore.warehouse.dir</name>
-        <value>s3a://data_services/warehouse/</value>
-    </property> -->
+        <value>s3a://hive/warehouse</value>
+    </property>
     <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
         <value>org.postgresql.Driver</value>
@@ -32,12 +32,12 @@
 
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
-        <value>admin</value>
+        <value>postgres</value>
     </property>
 
     <property>
         <name>javax.jdo.option.ConnectionPassword</name>
-        <value>admin</value>
+        <value>postgres</value>
     </property>
 
     <property>
