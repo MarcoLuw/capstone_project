@@ -35,51 +35,56 @@ def load_from_cache():
 
 COLUMN_MAPPING = {}
 
-TEMP_MAPPING = {
-        "Mã đơn hàng": {
-            "table": "fact_ecommerce_sales",
-            "field": "order_number"
-        },
-        "Ngày đặt hàng": {
-            "table": "fact_ecommerce_sales",
-            "field": "order_date"
-        },
-        "SKU sản phẩm": {
-            "table": "dim_product",
-            "field": "product_key"
-        },
-        "Tên sản phẩm": {
-            "table": "dim_product",
-            "field": "product_name"
-        },
-        "Loại sản phẩm": {
-            "table": "dim_product",
-            "field": "product_category"
-        },
-        "Số lượng": {
-            "table": "fact_ecommerce_sales",
-            "field": "order_quantity"
-        },
-        "Tổng giá bán (sản phẩm)": {
-            "table": "fact_ecommerce_sales",
-            "field": "total_sale"
-        },
-        "Người Mua": {
-            "table": "dim_customer",
-            "field": "full_name"
-        }
-    }
+# TEMP_MAPPING = {
+#         "Mã đơn hàng": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "order_number"
+#         },
+#         "Ngày đặt hàng": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "order_date"
+#         },
+#         "SKU sản phẩm": {
+#             "table": "dim_product",
+#             "field": "product_key"
+#         },
+#         "Tên sản phẩm": {
+#             "table": "dim_product",
+#             "field": "product_name"
+#         },
+#         "Loại sản phẩm": {
+#             "table": "dim_product",
+#             "field": "product_category"
+#         },
+#         "Số lượng": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "order_quantity"
+#         },
+#         "Tổng giá bán (sản phẩm)": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "total_sale"
+#         },
+#         "Người Mua": {
+#             "table": "dim_customer",
+#             "field": "full_name"
+#         }
+#     }
 
 # Define The NUMERIC_FIELDS and AGGREGATION_OPTIONS
-NUMERIC_FIELDS = [
-                'order_key', 'order_number', 'order_line_number', 'order_date', 
-                'order_time', 'customer_key', 'store_key', 'product_key', 
-                'unit_price', 'unit_cost', 'order_quantity', 'total_sale'
-                ]
+# NUMERIC_FIELDS = [
+#                 'order_key', 'order_number', 'order_line_number', 'order_date', 
+#                 'order_time', 'customer_key', 'store_key', 'product_key', 
+#                 'unit_price', 'unit_cost', 'order_quantity', 'sales_amount'
+#                 ]
 
 SCHEMAS_JSON = {
     "tables": {
         "fact_ecommerce_sales": [
+            {"field": "date_key", "description": "Foreign key to dim_date"},
+            {"field": "customer_key", "description": "Foreign key to dim_customer"},
+            {"field": "product_key", "description": "Foreign key to dim_product"},
+            {"field": "promotion_key", "description": "Foreign key to dim_promotion"},
+            {"field": "shipment_key", "description": "Foreign key to dim_shipment"},
             {"field": "order_number", "description": "Unique identifier for the order"},
             {"field": "order_date", "description": "The date the order was placed"},
             {"field": "ship_date", "description": "The date the order was shipped"},
@@ -90,13 +95,14 @@ SCHEMAS_JSON = {
             {"field": "payment_date", "description": "The date the payment was made"}
         ],
         "dim_product": [
-            {"field": "product_key", "description": "Unique key for the product"},
+            {"field": "product_key", "description": "Unique key for the product dimensional table or SKU of product"},
             {"field": "product_name", "description": "Name of the product"},
             {"field": "product_category", "description": "Category name of the product"},
             {"field": "price", "description": "Price of the product"},
             {"field": "weight", "description": "Weight of the product"}
         ],
         "dim_date": [
+            {"field": "date_key", "description": "Key of date dimensional table"},
             {"field": "day", "description": "Day of the month"},
             {"field": "month", "description": "Month of the year"},
             {"field": "year", "description": "Year"},
@@ -105,17 +111,20 @@ SCHEMAS_JSON = {
             {"field": "day_of_week_number", "description": "Number of the day in the week"}
         ],
         "dim_promotion": [
-            {"field": "shopee_discount_code", "description": "Discount code applied on Shopee"}
+            {"field": "promotion_key", "description": "Surrogate key of promotion dimensional table"},
+            {"field": "promotion", "description": "Promotion code"}
         ],
         "dim_shipment": [
-            {"field": "tracking_code", "description": "Tracking code of the shipment"},
+            {"field": "shipment_key", "description": "Surrogate key of shipment dimensional table"},
             {"field": "shipping_company", "description": "Company responsible for shipping"}
         ],
         "dim_customer": [
+            {"field": "customer_key", "description": "Surrogate key of customer dimensional table"},
             {"field": "customer_name", "description": "Name of the customer"}
         ]
     }
 }
+
 
 
 AGGREGATION_OPTIONS = ['SUM', 'AVERAGE', 'COUNT', 'DISTINCT']
@@ -432,9 +441,6 @@ class GetCardView(APIView):
 
     # Helper function to generate aggregation query for card view
     def generateAggregationQueryCard(self, from_clause: str, field: str, aggre: str, where_clause: str):
-        if field not in NUMERIC_FIELDS and aggre in ['SUM', 'AVERAGE']:
-            return 'Invalid'
-        
         if aggre == 'SUM':
             query = f'SELECT SUM({field}) FROM {from_clause} WHERE {where_clause};'
         elif aggre == 'AVERAGE':
@@ -717,10 +723,11 @@ class GetChatBotView(APIView):
                 print(response_text)
                 json_result = self.extract_json(response_text)
                 message_text = json_result.get('message')
+                hint_text = json_result.get('hint')
                 query_text = json_result.get('query')
                 
                 if not query_text or query_text == "NULL":
-                    result = {"message": message_text, "data": ""}
+                    result = {"message": message_text, "data": "", "hint": hint_text}
                     return Response(result, status=status.HTTP_200_OK)
 
                 conn = connectToDB()
@@ -739,7 +746,7 @@ class GetChatBotView(APIView):
                     data = [dict(zip(column_names, row)) for row in rows]
 
                     if data:
-                        result = {"message": message_text, "data": data}
+                        result = {"message": message_text, "data": data, "hint": hint_text}
                         return Response(result, status=status.HTTP_200_OK)
 
                 except Exception as e:
@@ -749,7 +756,7 @@ class GetChatBotView(APIView):
                     cursor.close()
                     conn.close()
             except ValueError as e:
-                result = {"message": message_text + f" Rất tiếc vì {str(e)}", "data": None}
+                result = {"message": message_text + f" Rất tiếc vì {str(e)}", "data": "", "hint": hint_text}
                 if attempt >= retries - 1:
                     break  # Thoát vòng lặp nếu đây là lần thử cuối cùng
 
@@ -769,8 +776,12 @@ class GetChatBotView(APIView):
     def generate_query(self, schemas, user_prompt):
 
         system_config = """You are chatbot about data analyst. You will write query MySQL. But you don't say about MySQL. 
-        Respond format json like this:{"message":Short describe how to query the data for non-tech users, "query": insert SQL command here on oneline}"
-        If user just talk something with you, talk something in "message" and "query": ""
+        Respond format json like this:
+        {"message":Short describe how to query the data for non-tech users, 
+        "query": insert SQL command here on oneline, always LIMIT 100 
+        "hint":list of 3 questions help user can ask about data, related of user prompt, format like this ["","",""]}"
+        If user ask vague question with you, talk something to instruct how to use in "message" and return "" in "query" and list 3 questions in "hint" 
+        Answer by the language of user
         """
 
         response = self.client.chat.completions.create(

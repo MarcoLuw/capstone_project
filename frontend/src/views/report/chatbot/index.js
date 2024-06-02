@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Form, Button, InputGroup, Spinner } from 'react-bootstrap';
+import { Row, Col, Form, Button, InputGroup, Spinner, Card as BootstrapCard } from 'react-bootstrap';
 import Card from '../../../components/Card/MainCard';
 import TablePreview from '../chart/Table';
 import axios from 'axios';
@@ -27,22 +27,23 @@ const ChatbotPage = () => {
         return message.split('\n').map((line, index) => <p key={index}>{line}</p>);
     };
 
-    const handleSendMessage = async () => {
-        if (input.trim() !== '') {
-            const newUserMessage = { text: input, sender: 'user', role: 'You' };
+    const handleSendMessage = async (messageText) => {
+        if (messageText.trim() !== '') {
+            const newUserMessage = { text: messageText, sender: 'user', role: 'You' };
             setMessages(messages => [...messages, newUserMessage]);
 
             setInput('');  // Clear input immediately
             setLoading(true);  // Set loading to true
 
-            const { message, data } = await get_chat_bot_result(input);
+            const { message, data, hint } = await get_chat_bot_result(messageText);
 
             const botResponseText = formatMessage(message);
             const botResponse = {
                 text: botResponseText,
                 sender: 'bot',
                 role: 'Assistant',
-                data
+                data,
+                hint
             };
 
             setMessages(messages => [...messages, botResponse]);
@@ -69,6 +70,15 @@ const ChatbotPage = () => {
                                     </div>
                                     <div>{message.text}</div>
                                     {message.sender === 'bot' && message.data && <TablePreview data={message.data} />}
+                                    {message.sender === 'bot' && message.hint && (
+                                        <div className="hints">
+                                            {message.hint.map((hint, hintIndex) => (
+                                                <BootstrapCard key={hintIndex} className="hint-card" onClick={() => handleSendMessage(hint)}>
+                                                    <BootstrapCard.Body>{hint}</BootstrapCard.Body>
+                                                </BootstrapCard>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                             {loading && (
@@ -91,32 +101,32 @@ const ChatbotPage = () => {
                                         <div className="col-md-3">
                                             <div className="card">
                                                 <div className="card-body">
-                                                    <h5 className="card-title">Statistic</h5>
-                                                    <p className="card-text">Show me report about this month's Total sale?</p>
+                                                    <h5 className="card-title">Performance</h5>
+                                                    <p className="card-text">Know about main metrics like total orders, quantity, sales...</p>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="col-md-3">
                                             <div className="card">
                                                 <div className="card-body">
-                                                    <h5 className="card-title">Compare</h5>
-                                                    <p className="card-text">Compare food items in 2 recent month?</p>
+                                                    <h5 className="card-title">Product</h5>
+                                                    <p className="card-text">Know about KPIs of product or category</p>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="col-md-3">
                                             <div className="card">
                                                 <div className="card-body">
-                                                    <h5 className="card-title">Predict</h5>
-                                                    <p className="card-text">Please let me know which products are become trending?</p>
+                                                    <h5 className="card-title">Customer</h5>
+                                                    <p className="card-text">Know about information or behavior of customer</p>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="col-md-3">
                                             <div className="card">
                                                 <div className="card-body">
-                                                    <h5 className="card-title">Recommend</h5>
-                                                    <p className="card-text">Propose next month's business plan for me?</p>
+                                                    <h5 className="card-title">History</h5>
+                                                    <p className="card-text">Know about your business during the period of time</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -126,14 +136,14 @@ const ChatbotPage = () => {
                         )}
 
                         <Form onSubmit={(e) => {
-                            e.preventDefault(); // This will prevent the default form submission
-                            handleSendMessage();
+                            e.preventDefault();
+                            handleSendMessage(input);
                         }}>
                             <Form.Group className="d-flex">
                                 <InputGroup>
                                     <Form.Control
                                         type="text"
-                                        placeholder="Nhập tin nhắn..."
+                                        placeholder="What do you want to know about your data?"
                                         value={input}
                                         onChange={handleInputChange}
                                     />

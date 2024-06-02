@@ -30,6 +30,8 @@ const Linechart = ({ id, data, height, categoryfield, valuefield}) => {
                 id: 'g1',
                 valueField: 'valuefield',
                 title: valuefield,
+                bullet: 'round', // Add circular markers
+                bulletSize: 8, // Set the size of the markers
                 bulletBorderThickness: 1,
                 lineColor: '#1C4E80',
                 balloonText: "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>",

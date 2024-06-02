@@ -121,6 +121,7 @@ class ImportDataFromFileView(APIView):
         # Upload data to frontend for preview
         dataProcessor = ProcessData(file)
         json_data = dataProcessor.getSampleDataUI()
+        summary_data = dataProcessor.getSummaryData()
 
         # Upload the file to MinIO
         user = getUser(payload['id'])
@@ -135,7 +136,7 @@ class ImportDataFromFileView(APIView):
         upload_result = file_uploader.uploadFile(filepath, user.username)
         if not upload_result:
             return Response({"Error": "Could not upload the file."}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"message": "File uploaded successfully.", "data": json_data}, status=status.HTTP_200_OK)
+        return Response({"message": "File uploaded successfully.", "data": json_data, "summary_data": summary_data}, status=status.HTTP_200_OK)
 
     def saveFile(self, file):
         storage_path = os.path.normpath(os.path.join(ROOT_PATH, 'storage'))
