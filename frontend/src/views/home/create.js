@@ -1,6 +1,6 @@
 import React, { useState ,useRef, useEffect} from 'react';
 import { Row, Col, Card, Form, Button, Modal, Table, Spinner } from 'react-bootstrap';
-import PreviewData from './previewdata';
+import PreviewData from '../report/chart/previewdata';
 import axios from 'axios';
 // import {InputGroup, FormControl, DropdownButton, Dropdown} from 'react-bootstrap';
 
@@ -11,6 +11,7 @@ const FormsElements = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showConnectedModal, setShowConnectedModal] = useState(false); // Modal thông báo kết nối thành công
     const [data, setData] = useState([]);
+    const [summaryData, setSummaryData] = useState({});
     const [columns, setColumns] = useState([]);
     const [matchingResult, setMatchingResult] = useState({});
     const [userFields, setUserFields] = useState({});
@@ -44,11 +45,6 @@ const FormsElements = () => {
     };
     
 
-    useEffect(() => {
-        // Fetch column data when component mounts
-        showColumns();
-    }, []);
-
      // Hàm xử lý khi nhấp vào nút upload
      const handleUploadClick = () => {
         // Kích hoạt click trên thẻ input file
@@ -73,8 +69,9 @@ const FormsElements = () => {
 
                 if (response.data.message === "File uploaded successfully.") {
                     setData(response.data.data)
-                    setShowSuccessModal(true); // Hiển thị modal thông báo thành công
+                    setSummaryData(response.data.summary_data);
                     await showColumns();
+                    setShowSuccessModal(true); // Hiển thị modal thông báo thành công
                 }
             } catch (error) {
                 console.error("There was an error uploading the file:", error);
@@ -194,7 +191,7 @@ const FormsElements = () => {
                                     </Spinner>
                                 </div>
                             ) : (
-                                <PreviewData data={data} height="1200px" />
+                                <PreviewData data={data} summary_data={summaryData} height="1200px" />
                             )}
                         </Card.Body>
                     </Card>

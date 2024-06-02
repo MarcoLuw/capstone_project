@@ -121,6 +121,7 @@ class ImportDataFromFileView(APIView):
         # Upload data to frontend for preview
         dataProcessor = ProcessData(file)
         json_data = dataProcessor.getSampleDataUI()
+        summary_data = dataProcessor.getSummaryData()
 
         # Upload the file to MinIO
         user = getUser(payload['id'])
@@ -135,7 +136,7 @@ class ImportDataFromFileView(APIView):
         upload_result = file_uploader.uploadFile(filepath, user.username)
         if not upload_result:
             return Response({"Error": "Could not upload the file."}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"message": "File uploaded successfully.", "data": json_data}, status=status.HTTP_200_OK)
+        return Response({"message": "File uploaded successfully.", "data": json_data, "summary_data": summary_data}, status=status.HTTP_200_OK)
 
     def saveFile(self, file):
         storage_path = os.path.normpath(os.path.join(ROOT_PATH, 'storage'))
@@ -151,4 +152,24 @@ class ImportDataFromFileView(APIView):
                 destination.write(chunk)
         cache.set('FILE_NAME', file.name, timeout=None)
         return filepath
+
+""" Read the dashboard state of the user """
+class DashboardStateView(APIView):
+    def get(self, request):
+        isAuth, payload = isAuthenticate(request)
+        if not isAuth:
+            return Response({"Error": "Unauthenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
+        user = getUser(payload['id'])
+        dashboard_data = user.dashboard_state
+        return Response({"visualist": dashboard_data}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        isAuth, payload = isAuthenticate(request)
+        if not isAuth:
+            return Response({"Error": "Unauthenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user = getUser(payload['id'])
+        user.dashboard_state = request.data
+        user.save()
+        return Response({"message": "Dashboard state saved successfully."}, status=status.HTTP_200_OK)

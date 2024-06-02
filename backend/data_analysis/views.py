@@ -49,47 +49,47 @@ def load_from_cache():
 
 COLUMN_MAPPING = {}
 
-TEMP_MAPPING = {
-        "Mã đơn hàng": {
-            "table": "fact_ecommerce_sales",
-            "field": "order_number"
-        },
-        "Ngày đặt hàng": {
-            "table": "fact_ecommerce_sales",
-            "field": "order_date"
-        },
-        "SKU sản phẩm": {
-            "table": "dim_product",
-            "field": "product_key"
-        },
-        "Tên sản phẩm": {
-            "table": "dim_product",
-            "field": "product_name"
-        },
-        "Loại sản phẩm": {
-            "table": "dim_product",
-            "field": "product_category"
-        },
-        "Số lượng": {
-            "table": "fact_ecommerce_sales",
-            "field": "order_quantity"
-        },
-        "Tổng giá bán (sản phẩm)": {
-            "table": "fact_ecommerce_sales",
-            "field": "total_sale"
-        },
-        "Người Mua": {
-            "table": "dim_customer",
-            "field": "full_name"
-        }
-    }
+# TEMP_MAPPING = {
+#         "Mã đơn hàng": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "order_number"
+#         },
+#         "Ngày đặt hàng": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "order_date"
+#         },
+#         "SKU sản phẩm": {
+#             "table": "dim_product",
+#             "field": "product_key"
+#         },
+#         "Tên sản phẩm": {
+#             "table": "dim_product",
+#             "field": "product_name"
+#         },
+#         "Loại sản phẩm": {
+#             "table": "dim_product",
+#             "field": "product_category"
+#         },
+#         "Số lượng": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "order_quantity"
+#         },
+#         "Tổng giá bán (sản phẩm)": {
+#             "table": "fact_ecommerce_sales",
+#             "field": "total_sale"
+#         },
+#         "Người Mua": {
+#             "table": "dim_customer",
+#             "field": "full_name"
+#         }
+#     }
 
 # Define The NUMERIC_FIELDS and AGGREGATION_OPTIONS
-NUMERIC_FIELDS = [
-                'order_key', 'order_number', 'order_date', 
-                'order_time', 'customer_key', 'store_key', 'product_key', 
-                'unit_price', 'unit_cost', 'order_quantity', 'sales_amount'
-                ]
+# NUMERIC_FIELDS = [
+#                 'order_key', 'order_number', 'order_line_number', 'order_date', 
+#                 'order_time', 'customer_key', 'store_key', 'product_key', 
+#                 'unit_price', 'unit_cost', 'order_quantity', 'sales_amount'
+#                 ]
 
 SCHEMAS_JSON = {
     "tables": {
@@ -109,7 +109,7 @@ SCHEMAS_JSON = {
             {"field": "payment_date", "description": "The date the payment was made"}
         ],
         "dim_product": [
-            {"field": "product_key", "description": "Unique key for the product dimensional table"},
+            {"field": "product_key", "description": "Unique key for the product dimensional table or SKU of product"},
             {"field": "product_name", "description": "Name of the product"},
             {"field": "product_category", "description": "Category name of the product"},
             {"field": "price", "description": "Price of the product"},
@@ -138,6 +138,7 @@ SCHEMAS_JSON = {
         ]
     }
 }
+
 
 
 AGGREGATION_OPTIONS = ['SUM', 'AVERAGE', 'COUNT', 'DISTINCT']
@@ -192,11 +193,10 @@ def connectToDB(username):
 
     # Create the connection string
     connection_string = {
-        'host': host,
-        'port': port,
-        'user': user,
-        'catalog': catalog,
-        'schema': schema
+        'host': server,
+        'user': username,
+        'password': password,
+        'database': database
     }
 
     # Connect to the database
@@ -208,6 +208,33 @@ def connectToDB(username):
         exit()
 
     return conn
+
+# def connectToDB(username):
+#     # Trino connection information 
+#     host = 'localhost'  # Adjust this to your Trino host
+#     port = 8888  # Default Trino port
+#     catalog = 'warehouse'  # Your catalog name
+#     schema = f'gold_{username}'  # Your schema name
+#     user = 'trino'  # Your Trino user
+
+#     # Create the connection string
+#     connection_string = {
+#         'host': host,
+#         'port': port,
+#         'user': user,
+#         'catalog': catalog,
+#         'schema': schema
+#     }
+
+#     # Connect to the database
+#     try:
+#         conn = Connection(**connection_string)
+#         logging.info("Connection successful")
+#     except Exception as e:
+#         logging.error(f"Error connecting to the database: {e}")
+#         exit()
+
+#     return conn
 
 class GetInfoFieldView(APIView):
     def get(self, request):
@@ -551,9 +578,6 @@ class GetCardView(APIView):
 
     # Helper function to generate aggregation query for card view
     def generateAggregationQueryCard(self, from_clause: str, field: str, aggre: str, where_clause: str):
-        if field not in NUMERIC_FIELDS and aggre in ['SUM', 'AVERAGE']:
-            return 'Invalid'
-        
         if aggre == 'SUM':
             query = f'SELECT SUM({field}) FROM {from_clause} WHERE {where_clause}'
         elif aggre == 'AVERAGE':
@@ -840,10 +864,11 @@ class GetChatBotView(APIView):
                 print(response_text)
                 json_result = self.extract_json(response_text)
                 message_text = json_result.get('message')
+                hint_text = json_result.get('hint')
                 query_text = json_result.get('query')
                 
                 if not query_text or query_text == "NULL":
-                    result = {"message": message_text, "data": ""}
+                    result = {"message": message_text, "data": "", "hint": hint_text}
                     return Response(result, status=status.HTTP_200_OK)
 
                 conn = connectToDB(user.username)
@@ -862,7 +887,7 @@ class GetChatBotView(APIView):
                     data = [dict(zip(column_names, row)) for row in rows]
 
                     if data:
-                        result = {"message": message_text, "data": data}
+                        result = {"message": message_text, "data": data, "hint": hint_text}
                         return Response(result, status=status.HTTP_200_OK)
 
                 except Exception as e:
@@ -872,7 +897,7 @@ class GetChatBotView(APIView):
                     cursor.close()
                     conn.close()
             except ValueError as e:
-                result = {"message": message_text + f" Rất tiếc vì {str(e)}", "data": None}
+                result = {"message": message_text + f" Rất tiếc vì {str(e)}", "data": "", "hint": hint_text}
                 if attempt >= retries - 1:
                     break  # Thoát vòng lặp nếu đây là lần thử cuối cùng
 

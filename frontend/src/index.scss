@@ -1,4 +1,41 @@
 @import 'assets/scss/style.scss';
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.hints {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.hint-card {
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background-color: #f8f9fa; /* Set background color */
+    color: #000; /* Ensure text is visible */
+    border: 1px solid #ccc; /* Add border */
+    border-radius: 10px; /* Rounded corners */
+    padding: 10px; /* Add padding */
+    font-size: 14px; /* Smaller text */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.hint-card:hover {
+    transform: scale(1.05);
+    background-color: #e9ecef; /* Slightly different hover color */
+}
+
+.loading-spinner {
+    text-align: center;
+    margin-top: 20px;
+}
+
+
 .spinner-container {
     height: 200px;
     display: flex;

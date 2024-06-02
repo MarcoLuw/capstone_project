@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Row, Col, Card, Form, Button, Spinner } from 'react-bootstrap';
 import MainCard from '../../../components/Card/MainCard';
 import axios from 'axios';
-import TablePreview from '../chart/Table';
+import PreviewData from '../chart/previewdata';
 import Barchart from '../chart/Barchart';
 
 const get_data_customer = async (start_date, end_date) => {
@@ -48,8 +48,8 @@ const get_data_basket = async (start_date, end_date) => {
 };
 
 const DashSuggestion = () => {
-    const [startTime, setStartTime] = useState('2023-01-01');
-    const [endTime, setEndTime] = useState('2023-02-25');
+    const [startTime, setStartTime] = useState('2022-10-01');
+    const [endTime, setEndTime] = useState('2022-11-30');
     const [customerData, setCustomerData] = useState({ segment_count: [], data: [] });
     const [trendProductData, setTrendProductData] = useState([]);
     const [comboData, setComboData] = useState([]);
@@ -134,14 +134,14 @@ const DashSuggestion = () => {
                 {!loading && (
                     <>
                         <Col key='trend-product' xl={12}>
-                            <MainCard title='Predict Trend Product (Next Month)' isOption>
-                                <TablePreview data={trendProductData} />
+                            <MainCard title='Predict Trend Product (Next 30 days)' isOption>
+                                <PreviewData data={trendProductData} />
                             </MainCard>
                         </Col>
 
                         <Col key='recommend-combo' xl={12}>
                             <MainCard title='Recommend Combo' isOption>
-                                <TablePreview data={comboData} />
+                                <PreviewData data={comboData} />
                             </MainCard>
                         </Col>
 
@@ -152,7 +152,7 @@ const DashSuggestion = () => {
                             </MainCard>
 
                             <MainCard title='Detail of Customer' isOption>
-                                <TablePreview data={customerData.data} />
+                                <PreviewData data={customerData.data} />
                             </MainCard>
                         </Col>
                     </>

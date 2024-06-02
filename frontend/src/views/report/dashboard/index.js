@@ -8,7 +8,7 @@ import Barchart from '../chart/Barchart';
 import Columnchart from '../chart/Columnchart';
 import Piechart from '../chart/Piechart';
 import Linechart from '../chart/Linechart';
-import TablePreview from '../chart/Table';
+import PreviewData from '../chart/previewdata';
 
 function formatNumber(number) {
     return number.toLocaleString('de-DE', {
@@ -65,6 +65,20 @@ const DashDefault = () => {
 
 
     //API
+
+    const postVisualList = async (visualList) => {
+        try {
+            const response = await axios.post('http://localhost:8000/userdb/api/dashboard-state', {
+                visualist: visualList
+            }, {
+                withCredentials: true
+            });
+            console.log('Successfully posted visual list:', response.data);
+        } catch (error) {
+            console.error('Failed to post visual list:', error);
+        }
+    };
+    
 
     const convertFiltersToParams = (filterList, startTime, endTime, orderDateField) => {
         const params = {};
@@ -161,7 +175,6 @@ const DashDefault = () => {
     };
 
     useEffect(() => {
-        setLoading(true); // Set loading to true when the component is mounted
         get_all_columns(); // Fetch columns when component mounts
     }, []);
 
@@ -276,7 +289,6 @@ const DashDefault = () => {
     
         setFilterList(prevFilterList => [...prevFilterList, newFilter]);
         setShowAddFilter(false); // Close the modal or dropdown adding this new filter
-        setLoading(true); // Trigger data reload
     };
     
     const handleRangeChange = (filterId, mark, value) => {
@@ -360,9 +372,15 @@ const DashDefault = () => {
                 { width: 6, height: '360px', title: 'Segment of Category', type: 'Piechart', id: 'pie-chart', data: {}, fields: { categoryfield: fieldMap['product_category'] || '', valuefield: fieldMap['sales_amount'] || '', agg: 'SUM', sort_value: 'DESC' } },
                 { width: 12, height: '360px', title: 'Product Detail', type: 'Table', id: 'table', data: {}, fields: [fieldMap['order_date'] || '', fieldMap['product_name'] || '', fieldMap['product_category'] || '', fieldMap['order_quantity'] || '', fieldMap['sales_amount'] || ''] }
             ]);
-            setLoading(true);
         }
     }, [matchingResult]);
+
+    useEffect(() => {
+        if (visualList.length > 0) {  // Ensure there's at least one visualization
+            postVisualList(visualList);
+        }
+    }, [visualList]);
+    
 
     useEffect(() => {
         const fetchFieldInfo = async () => {
@@ -461,7 +479,7 @@ const DashDefault = () => {
             'Piechart': Piechart,
             'Linechart': Linechart,
             'Card': Card,
-            'Table': TablePreview,
+            'Table': PreviewData,
         }[type];
 
         if (!ChartComponent) return null;
@@ -470,7 +488,7 @@ const DashDefault = () => {
 
             return (
                 <MainCard title={title} isOption data={data}>
-                    <TablePreview data={data} />
+                    <PreviewData data={data} />
                 </MainCard>
             );
         }
@@ -498,14 +516,7 @@ const DashDefault = () => {
         }
     };
 
-    const renderDashboard = () => {
-        if (loading) return (
-            <div className="spinner-container">
-                <Spinner animation="border" role="status" variant="primary" />
-                <div className="spinner-text">Loading visualizations...</div>
-            </div>
-        );
-    
+    const renderDashboard = () => {    
         return visualList.map((visualization, index) => (
             <Col key={index} xl={visualization.width}>
                 {renderVisualization(visualization)}
@@ -652,7 +663,16 @@ const DashDefault = () => {
                     </Card>
             </Col>
             
-            {renderDashboard()}
+            {loading ? (
+                    <Col xl={12} className="d-flex justify-content-center" style={{ marginTop: '20px' }}>
+                        <div className="spinner-container">
+                            <Spinner animation="border" role="status" variant="primary" />
+                            <div className="spinner-text">Loading visualizations...</div>
+                        </div>
+                    </Col>
+                ) : (
+                    renderDashboard()
+                )}
 
 
             <Modal show={ShowAddVisual} onHide={() => setShowAddVisual(false)}>

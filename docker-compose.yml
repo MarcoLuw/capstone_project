@@ -172,8 +172,8 @@ services:
     ports:
       - "8081-8099:8080"
       - "7078-7099:7000"
-    # depends_on:
-    #   - spark-master
+    depends_on:
+      - spark-master
     deploy:
       resources:
         limits:

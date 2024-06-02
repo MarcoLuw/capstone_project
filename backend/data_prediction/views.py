@@ -86,7 +86,6 @@ def processingAndPredict(model, df: pd.DataFrame):
 
     # Loại bỏ cột order_date trước khi trả về
     df_predict = df.drop(columns=['product_name'])  
-    print("df_predict", df_predict.head(10))
     
     # Tạo danh sách chứa tất cả các product_key
     list_product_key = df['product_key']
@@ -197,7 +196,7 @@ class GetBasketDataView(APIView):
         where_clause = f"order_date BETWEEN '{start_date}' AND '{end_date}'"
         select_clause = ", ".join(selected_columns)
 
-        query = f"SELECT {select_clause} FROM {from_clause} WHERE {where_clause} LIMIT 50"
+        query = f"SELECT {select_clause} FROM {from_clause} WHERE {where_clause} LIMIT 1000"
 
         conn = dataAnalysisViews.connectToDB(user.username)
 
@@ -305,9 +304,9 @@ class GetCustomerDataView(APIView):
 
         # Columns to be selected from shopee_fact_sales
         selected_columns = [
-            "DATEDIFF(" + recent_date_query + ", MAX(shopee_fact_sales.order_date)) AS recency",
-            "COUNT(shopee_fact_sales.order_date) AS frequency",
-            "SUM(shopee_fact_sales.total_sale) AS monetary"
+            "DATEDIFF(" + recent_date_query + ", MAX(fact_ecommerce_sales.order_date)) AS recency",
+            "COUNT(fact_ecommerce_sales.order_date) AS frequency",
+            "SUM(fact_ecommerce_sales.sales_amount) AS monetary"
         ]
 
         # Generate the SQL query
@@ -321,7 +320,7 @@ class GetCustomerDataView(APIView):
         FROM {from_clause}
         WHERE {where_clause}
         GROUP BY {group_by_clause}
-        LIMIT 50
+        LIMIT 1000
         """
 
         conn = dataAnalysisViews.connectToDB(user.username)
