@@ -62,7 +62,7 @@ def getData(conn, start_date=None, end_date=None):
         JOIN 
             dim_product dp ON fs.product_key = dp.product_key
         WHERE 
-            fs.order_date BETWEEN '{start_date}' AND '{end_date}'
+            fs.order_date BETWEEN DATE '{start_date}' AND DATE '{end_date}'
         GROUP BY 
             fs.product_key, 
             dp.product_name, 
@@ -89,9 +89,10 @@ def processingAndPredict(model, df: pd.DataFrame):
     
     # Tạo danh sách chứa tất cả các product_key
     list_product_key = df['product_key']
+    print("Number of rows:", len(list_product_key))
     
     # Duyệt qua các sản phẩm trong list_product_key
-    for product_key in list_product_key[:10]:
+    for product_key in list_product_key.unique()[:10]:
         # Chọn một sản phẩm để phân tích
         product_example = df_predict[df_predict['product_key'] == product_key]
         
@@ -110,7 +111,7 @@ def processingAndPredict(model, df: pd.DataFrame):
         last_data = sales_data_scaled[-look_back:].reshape((1, look_back, 1))
 
         # Dự đoán cho 5 ngày tiếp theo
-        for _ in range(5):
+        for _ in range(30):
             next_quantity = model.predict(last_data)
             last_data = np.append(last_data[:, 1:, :], next_quantity.reshape(1, 1, 1), axis=1)
 
@@ -132,6 +133,7 @@ def processingAndPredict(model, df: pd.DataFrame):
             'growth': [growth]
         })
         results_df = pd.concat([results_df, new_row], ignore_index=True)
+        print("Count:",results_df.count())
     
     # Hiển thị kết quả và loại bỏ cột order_date
     results_df = results_df.sort_values("growth", ascending=False)
@@ -177,12 +179,13 @@ class GetBasketDataView(APIView):
         if not start_date or not end_date:
             return Response({"message": "start_date and end_date parameters are required."}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            # Convert dates to datetime objects to ensure correct format
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        except ValueError:
-            return Response({"message": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        #     # Convert dates to datetime objects to ensure correct format
+        #     start_date = datetime.strftime(start_date, '%Y-%m-%d')
+        #     end_date = datetime.strftime(end_date, '%Y-%m-%d')
+        #     print("Start date:", start_date)
+        # except ValueError:
+        #     return Response({"message": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Columns to be selected
         selected_columns = [
@@ -193,10 +196,10 @@ class GetBasketDataView(APIView):
 
         # Generate the SQL query
         from_clause = "shopee_fact_sales JOIN dim_product ON shopee_fact_sales.product_key = dim_product.product_key"
-        where_clause = f"order_date BETWEEN '{start_date}' AND '{end_date}'"
+        where_clause = f"order_date BETWEEN DATE '{start_date}' AND DATE '{end_date}'"
         select_clause = ", ".join(selected_columns)
 
-        query = f"SELECT {select_clause} FROM {from_clause} WHERE {where_clause} LIMIT 1000"
+        query = f"SELECT {select_clause} FROM {from_clause} WHERE {where_clause}"
 
         conn = dataAnalysisViews.connectToDB(user.username)
 
@@ -211,6 +214,7 @@ class GetBasketDataView(APIView):
 
             # Áp dụng luật kết hợp fpgrowth
             result = self.apply_fpgrowth(df)
+            print("Basket result:", result)
             
             return Response({"data": result}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -232,7 +236,7 @@ class GetBasketDataView(APIView):
         basket = pd.DataFrame(te_ary, columns=te.columns_)
 
         # Chuyển đổi số lượng thành dữ liệu nhị phân
-        basket_sets = basket.applymap(lambda x: 1 if x else 0)
+        basket_sets = basket.map(lambda x: 1 if x else 0)
 
         # Áp dụng FP-growth để tìm các itemsets thường xuyên
         frequent_itemsets = fpgrowth(basket_sets, min_support=0.005, use_colnames=True)
@@ -241,7 +245,8 @@ class GetBasketDataView(APIView):
         frequent_itemsets = frequent_itemsets[frequent_itemsets['itemsets'].apply(lambda x: len(x) <= 2)]
 
         # Tạo luật kết hợp từ các itemsets thường xuyên
-        rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.1)
+        rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.5)
+        print(rules)
 
         # Giả sử pro là DataFrame chứa các cột 'product_key' và 'product_name'
         product_keys = df['product_key'].unique()
@@ -285,33 +290,33 @@ class GetCustomerDataView(APIView):
         if not start_date or not end_date:
             return Response({"message": "start_date and end_date parameters are required."}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            # Convert dates to datetime objects to ensure correct format
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
-        except ValueError:
-            return Response({"message": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
-
+        # try:
+        #     # Convert dates to datetime objects to ensure correct format
+        #     start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        #     end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        # except ValueError:
+        #     return Response({"message": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
         # Generate the SQL query
-        recent_date_query = f"(SELECT MAX(order_date) FROM shopee_fact_sales WHERE order_date BETWEEN '{start_date}' AND '{end_date}')"
+        recent_date_query = f"(SELECT MAX(order_date) FROM shopee_fact_sales WHERE order_date BETWEEN DATE '{start_date}' AND DATE '{end_date}')"
         
         # Columns to be selected from dim_customer
         customer_columns = [
             "dim_customer.customer_key",
-            "dim_customer.first_name",
-            "dim_customer.last_name"
+            "dim_customer.customer_name"
         ]
 
         # Columns to be selected from shopee_fact_sales
         selected_columns = [
-            "DATEDIFF(" + recent_date_query + ", MAX(fact_ecommerce_sales.order_date)) AS recency",
-            "COUNT(fact_ecommerce_sales.order_date) AS frequency",
-            "SUM(fact_ecommerce_sales.sales_amount) AS monetary"
+            f"ABS(date_diff('day', CAST({recent_date_query} AS DATE), CAST(MAX(shopee_fact_sales.order_date) AS DATE))) AS recency",
+            "COUNT(shopee_fact_sales.order_date) AS frequency",
+            "SUM(shopee_fact_sales.sales_amount) AS monetary"
         ]
 
         # Generate the SQL query
+        print("Start date:", start_date)
+
         from_clause = "shopee_fact_sales JOIN dim_customer ON shopee_fact_sales.customer_key = dim_customer.customer_key"
-        where_clause = f"shopee_fact_sales.order_date BETWEEN '{start_date}' AND '{end_date}'"
+        where_clause = f"shopee_fact_sales.order_date BETWEEN DATE '{start_date}' AND DATE '{end_date}'"
         select_clause = ", ".join(customer_columns + selected_columns)
         group_by_clause = ", ".join(customer_columns)
 
@@ -320,7 +325,6 @@ class GetCustomerDataView(APIView):
         FROM {from_clause}
         WHERE {where_clause}
         GROUP BY {group_by_clause}
-        LIMIT 1000
         """
 
         conn = dataAnalysisViews.connectToDB(user.username)

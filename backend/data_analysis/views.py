@@ -193,10 +193,11 @@ def connectToDB(username):
 
     # Create the connection string
     connection_string = {
-        'host': server,
-        'user': username,
-        'password': password,
-        'database': database
+        'host': host,
+        'port': port,
+        'user': user,
+        'catalog': catalog,
+        'schema': schema
     }
 
     # Connect to the database
@@ -264,7 +265,7 @@ class GetInfoFieldView(APIView):
         if not field_type:
             return Response({"message": "Could not determine field type."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if field_type in ['int','float','date','datetime','tinyint']:
+        if field_type in ['integer','float','date','datetime','tinyint','bigint', 'smallint', 'real', 'double']:
             min_value, max_value = self.getMinAndMaxValues(column_name, table_name, user.username)
             if min_value is None or max_value is None:
                 return Response({"data": None}, status=status.HTTP_204_NO_CONTENT)
@@ -275,12 +276,13 @@ class GetInfoFieldView(APIView):
 
     def getFieldType(self, column_name, table_name, username):
         conn = connectToDB(username)
+        table_schema = f'gold_{username}'
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT data_type 
-            FROM information_schema.columns 
-            WHERE table_name = %s AND column_name = %s
-        """, (table_name, column_name))
+        cursor.execute(f"""
+            SELECT data_type
+            FROM information_schema.columns
+            WHERE table_name = '{table_name}' AND column_name = '{column_name}' AND table_schema  = '{table_schema}'
+        """)
         result = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -540,7 +542,7 @@ class GetCardView(APIView):
                 filter_start = request.GET.get(f'filter_field{i}_start', None)
                 filter_end = request.GET.get(f'filter_field{i}_end', None)
                 if filter_start and filter_end:
-                    where_clauses.append(f"{filter_column} BETWEEN  '{filter_start}' AND  '{filter_end}'")
+                    where_clauses.append(f"{filter_column} BETWEEN DATE '{filter_start}' AND DATE '{filter_end}'")
 
             i += 1
 
@@ -653,7 +655,7 @@ class GetBCPView(APIView):
                 filter_start = request.GET.get(f'filter_field{i}_start', None)
                 filter_end = request.GET.get(f'filter_field{i}_end', None)
                 if filter_start and filter_end:
-                    where_clauses.append(f"{filter_column} BETWEEN  '{filter_start}' AND  '{filter_end}'")
+                    where_clauses.append(f"{filter_column} BETWEEN DATE '{filter_start}' AND DATE '{filter_end}'")
 
             i += 1
 
@@ -790,7 +792,7 @@ class GetDataTableView(APIView):
                 filter_start = request.GET.get(f'filter_field{i}_start', None)
                 filter_end = request.GET.get(f'filter_field{i}_end', None)
                 if filter_start and filter_end:
-                    where_clauses.append(f"{filter_column} BETWEEN  '{filter_start}' AND  '{filter_end}'")
+                    where_clauses.append(f"{filter_column} BETWEEN DATE '{filter_start}' AND DATE '{filter_end}'")
 
             i += 1
 
@@ -825,7 +827,7 @@ class GetDataTableView(APIView):
         if len(tables) == 1:
             table = tables.pop()
             select_clause = ", ".join(field[1] for field in mapped_fields)
-            return f"SELECT {select_clause} FROM {table} WHERE {where_clause} LIMIT 50"
+            return f"SELECT {select_clause} FROM {table} WHERE {where_clause}"
         else:
             return self.generate_complex_query(mapped_fields, tables, where_clause)
 
@@ -837,7 +839,7 @@ class GetDataTableView(APIView):
                 join_conditions.append(f"JOIN {table} ON {primary_table}.product_key = {table}.product_key")
         join_clause = " ".join(join_conditions)
         select_clause = ", ".join(f"{field[0]}.{field[1]}" for field in mapped_fields)
-        return f"SELECT {select_clause} FROM {primary_table} {join_clause} WHERE {where_clause} LIMIT 50"
+        return f"SELECT {select_clause} FROM {primary_table} {join_clause} WHERE {where_clause}"
     
 
 class GetChatBotView(APIView):
@@ -855,17 +857,24 @@ class GetChatBotView(APIView):
         global COLUMN_MAPPING
         COLUMN_MAPPING = json.dumps(matching_result, indent=4)
 
-        user_prompt = request.GET.get('prompt')
+        user_prompt = request.GET.get('prompt') 
+        previous_query = ''
+        previous_error = ''
 
-        retries = 2
+        retries = 5
         for attempt in range(retries):
             try:
-                response_text = self.generate_query(COLUMN_MAPPING, user_prompt)
+                if previous_error:
+                    print("Previous query:", previous_query)
+                    response_text = self.generate_query(COLUMN_MAPPING, user_prompt, previous_query, previous_error)
+                else:
+                    response_text = self.generate_query(COLUMN_MAPPING, user_prompt)
                 print(response_text)
                 json_result = self.extract_json(response_text)
                 message_text = json_result.get('message')
                 hint_text = json_result.get('hint')
                 query_text = json_result.get('query')
+                previous_query = query_text
                 
                 if not query_text or query_text == "NULL":
                     result = {"message": message_text, "data": "", "hint": hint_text}
@@ -892,13 +901,15 @@ class GetChatBotView(APIView):
 
                 except Exception as e:
                     logging.error(f"Error executing query: {e}")
+                    previous_error = str(e)
+                    print("Previous error:", previous_error)
                     raise ValueError("yêu cầu truy vấn của bạn không thể thực hiện được.")
                 finally:
                     cursor.close()
                     conn.close()
             except ValueError as e:
                 result = {"message": message_text + f" Rất tiếc vì {str(e)}", "data": "", "hint": hint_text}
-                if attempt >= retries - 1:
+                if attempt > retries - 1:
                     break  # Thoát vòng lặp nếu đây là lần thử cuối cùng
 
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
@@ -914,11 +925,25 @@ class GetChatBotView(APIView):
         # Trả về đối tượng JSON
         return json_obj
     
-    def generate_query(self, schemas, user_prompt):
+    def generate_query(self, schemas, user_prompt, previous_query = '', previous_error = ''):
 
-        system_config = """You are chatbot about data analyst. You will write query using SQL language of Trino. But you don't say about SQL instruction. 
-        Respond format json like this:{"message":Short describe how to query the data for non-tech users, "query": insert SQL command here on oneline}"
-        If user just talk something with you, talk something in "message" and "query": ""
+        system_config = """You are chatbot about data analyst. You will write query SQL language of Trino. But you don't say about the SQL instrucion. 
+        About trino sql language: Trino is an ANSI SQL compliant query engine. This standard compliance allows Trino users to integrate their favorite data tools, including BI and ETL tools with any underlying data source.
+        Trino validates and translates the received SQL statements into the necessary operations on the connected data source.
+        NOTE: 
+            1. do not have ';' at the end of the SQL instruction.
+            2. generate as trino SQL.
+            3. Don't use OFFSET keyword in SQL command.
+            4. The key of dim_customer is customer_key
+            5. The key of dim_product is product_key
+            6. The key of dim_promotion is promotion_key
+            7. The key of dim_shipment is shipment_key
+        Respond format json like this:
+        {"message":Short describe how to query the data for non-tech users, 
+        "query": insert SQL command here on oneline, always LIMIT 100 
+        "hint":list of 3 questions help user can ask about data, related of user prompt, format like this ["","",""]}"
+        If user ask vague question with you, talk something to instruct how to use in "message" and return "" in "query" and list 3 questions in "hint" 
+        Answer by the language of user
         """
 
         response = self.client.chat.completions.create(
@@ -926,6 +951,8 @@ class GetChatBotView(APIView):
             messages=[
                 {"role": "system", "content": system_config},
                 {"role": "system", "content": schemas},
+                {"role": "system", "content": previous_query},
+                {"role": "system", "content": previous_error},
                 {"role": "user", "content": user_prompt}
             ],
             max_tokens=4096,

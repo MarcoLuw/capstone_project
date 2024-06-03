@@ -48,8 +48,8 @@ const DashDefault = () => {
     });
 
 
-    const [startTime, setStartTime] = useState('2021-01-01');
-    const [endTime, setEndTime] = useState('2021-11-30');
+    const [startTime, setStartTime] = useState('2022-07-01');
+    const [endTime, setEndTime] = useState('2022-10-30');
 
     const handleStartTimeChange = (e) => {
         setStartTime(e.target.value);
@@ -400,7 +400,8 @@ const DashDefault = () => {
 
         const fieldType = fieldInfo.type;
         let options = [];
-        if (['int', 'float', 'tinyint'].includes(fieldType)) {
+        let numeric_types = ['integer','float','tinyint','bigint', 'smallint', 'real', 'double']
+        if (numeric_types.includes(fieldType)) {
             options = [
                 { label: 'Sum', value: 'SUM' },
                 { label: 'Average', value: 'AVERAGE' },

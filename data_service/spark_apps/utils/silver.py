@@ -100,9 +100,6 @@ class Silver:
         date_columns = ['order_date', 'ship_date', 'payment_date']
         for col_name in date_columns:
             transformed_df = transformed_df.withColumn(col_name, to_date(col(col_name), 'yyyy-MM-dd').cast('date'))
-        
-        # Format order_date to 'yyyy-MM-dd'
-        transformed_df = transformed_df.withColumn('order_date', date_format(col('order_date'), 'yyyy-MM-dd'))
 
         self.logger.info("Shopee data transformation completed.")
         return transformed_df
